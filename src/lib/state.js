@@ -264,6 +264,35 @@ if (typeof window !== 'undefined' && !window.__crowdCountKeyHandler) {
         return
       }
     }
+    // Enter — commit the current polygon / obstruction (only if it has ≥3 vertices).
+    // Circles and rects commit on their own second click and don't need this.
+    if (e.key === 'Enter' && !inField) {
+      // Ruler polyline: finish + clear cursor (mirror double-click behaviour).
+      if (state.ruler.active && state.ruler.points.length >= 2) {
+        state.ruler.cursor = null
+        e.preventDefault()
+        return
+      }
+      // Obstruction polygon
+      if (state.drawing === 'obstruction' && state.activeObstructionId) {
+        const z = state.zones.find(zz => zz.id === state.selectedZoneId)
+        const o = z?.obstructions.find(oo => oo.id === state.activeObstructionId)
+        if (o && o.vertices.length >= 3) {
+          enterMode(null)
+          e.preventDefault()
+          return
+        }
+      }
+      // Zone polygon
+      if (state.drawing === 'zone') {
+        const z = state.zones.find(zz => zz.id === state.selectedZoneId)
+        if (z && z.shape === 'polygon' && z.vertices.length >= 3) {
+          enterMode(null)
+          e.preventDefault()
+          return
+        }
+      }
+    }
     // Ctrl/Cmd+Z — undo last vertex (zone or obstruction, or ruler point).
     const isUndo = (e.ctrlKey || e.metaKey) && !e.shiftKey && e.key && e.key.toLowerCase() === 'z'
     if (!isUndo) return
