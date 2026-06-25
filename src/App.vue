@@ -9,14 +9,25 @@ import ResultBar from './components/ResultBar.vue'
 import IndoorOverlay from './components/IndoorOverlay.vue'
 import AboutPanel from './components/AboutPanel.vue'
 import RulerHUD from './components/RulerHUD.vue'
+import Density3DPreview from './components/Density3DPreview.vue'
 import { useApp } from './lib/state.js'
 
 const { state, restoreFromUrl } = useApp()
 const mapRef = ref(null)
+const density3DOpen = ref(false)
 
 onMounted(() => { restoreFromUrl() })
 
 function onPick(r) { mapRef.value?.fly(r) }
+
+function previewDensity() {
+  const z = state.zones.find(z => z.id === state.selectedZoneId) ?? state.zones[0]
+  return z?.density ?? 2
+}
+function previewZoneName() {
+  const z = state.zones.find(z => z.id === state.selectedZoneId) ?? state.zones[0]
+  return z?.name ?? ''
+}
 </script>
 
 <template>
@@ -39,6 +50,10 @@ function onPick(r) { mapRef.value?.fly(r) }
         @click="state.units = state.units === 'metric' ? 'imperial' : 'metric'">
         {{ state.units === 'metric' ? 'Metric' : 'Imperial' }}
       </button>
+      <button
+        class="text-xs px-2 py-1 rounded border border-ink-700 hover:bg-ink-700"
+        title="3D crowd density reference"
+        @click="density3DOpen = true">3D density</button>
       <button
         class="text-xs px-2 py-1 rounded border border-ink-700 hover:bg-ink-700"
         @click="state.ui.aboutOpen = true">About</button>
@@ -65,5 +80,10 @@ function onPick(r) { mapRef.value?.fly(r) }
     </main>
 
     <AboutPanel v-if="state.ui.aboutOpen" @close="state.ui.aboutOpen = false" />
+    <Density3DPreview
+      v-if="density3DOpen"
+      :density="previewDensity()"
+      :zone-name="previewZoneName()"
+      @close="density3DOpen = false" />
   </div>
 </template>
