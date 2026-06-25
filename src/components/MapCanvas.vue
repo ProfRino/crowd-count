@@ -602,10 +602,6 @@ defineExpose({ fly })
               @click="state.drawing === 'obstruction' ? enterMode(null) : startObstructionDrawing()">
         {{ state.drawing === 'obstruction' ? 'Drawing obstruction…' : 'Draw obstruction' }}
       </button>
-      <button class="px-3 py-1.5 rounded-md shadow-md text-xs font-medium bg-white border border-ink-100 hover:bg-ink-50"
-              @click="state.basemap = state.basemap === 'osm' ? 'satellite' : 'osm'">
-        {{ state.basemap === 'osm' ? 'Satellite' : 'Map' }}
-      </button>
     </div>
     <!-- Ruler -->
     <div class="bg-white rounded-md shadow-md border border-ink-100 flex overflow-hidden text-xs">
@@ -626,6 +622,13 @@ defineExpose({ fly })
       </button>
     </div>
   </div>
+
+  <!-- Satellite/Map toggle — placed on the right under the +/− zoom controls -->
+  <button
+    class="absolute top-24 right-3 z-10 px-2 py-1.5 rounded-md shadow-md text-xs font-medium bg-white border border-ink-100 hover:bg-ink-50"
+    @click="state.basemap = state.basemap === 'osm' ? 'satellite' : 'osm'">
+    {{ state.basemap === 'osm' ? 'Satellite' : 'Map' }}
+  </button>
 
   <div v-if="!state.zones.length" class="absolute inset-x-0 top-1/2 -translate-y-1/2 mx-auto w-fit max-w-md px-4 py-3 bg-white/95 rounded-lg shadow-lg text-center text-sm text-ink-700 z-10 pointer-events-none">
     Pick a shape, click <strong>Draw zone</strong>, then click the map.
