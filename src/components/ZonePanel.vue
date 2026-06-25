@@ -3,7 +3,11 @@ import { useApp } from '../lib/state.js'
 import { STILL_TICKS, DENSITY_MIN, DENSITY_MAX, CRUSH_THRESHOLD } from '../lib/standards.js'
 import { fmtAreaCompact, fmtDensity } from '../lib/units.js'
 
-const { state, addZone, deleteZone, selectZone, zoneAreaM2, zoneBadge } = useApp()
+const {
+  state, addZone, deleteZone, selectZone,
+  zoneAreaM2, obstructionAreaM2, zoneBadge,
+  addObstruction, deleteObstruction, enterMode,
+} = useApp()
 
 function tickPos(ppm) {
   return ((ppm - DENSITY_MIN) / (DENSITY_MAX - DENSITY_MIN)) * 100
@@ -15,6 +19,16 @@ function fmtCount(z) {
   return c.toLocaleString()
 }
 function fmtZoneDensity(d) { return fmtDensity(d, state.units) }
+function shapeGlyph(z) { return z.shape === 'circle' ? '◯' : z.shape === 'rect' ? '▭' : '▱' }
+
+function onAddZone() {
+  addZone(null, state.drawTool ?? 'polygon')
+  enterMode('drawing')
+}
+function onAddObstruction(zoneId) {
+  selectZone(zoneId)
+  addObstruction(zoneId)
+}
 </script>
 
 <template>
@@ -23,11 +37,11 @@ function fmtZoneDensity(d) { return fmtDensity(d, state.units) }
       <div class="text-xs uppercase tracking-wide text-ink-700">Zones</div>
       <button
         class="text-xs px-2 py-1 rounded bg-ink-900 text-white hover:bg-ink-700"
-        @click="addZone(); state.drawing = true">+ Add zone</button>
+        @click="onAddZone">+ Add zone</button>
     </div>
 
     <div v-if="!state.zones.length" class="text-xs text-ink-700 italic">
-      No zones yet. Click <span class="font-medium">+ Add zone</span> then click the map to drop vertices.
+      No zones yet. Pick a shape on the map toolbar, then click <span class="font-medium">+ Add zone</span>.
     </div>
 
     <ul class="space-y-2">
@@ -37,6 +51,7 @@ function fmtZoneDensity(d) { return fmtDensity(d, state.units) }
         <div class="flex items-center gap-2 p-2"
              @click="selectZone(z.id)">
           <span class="w-3 h-3 rounded-sm shrink-0" :style="{ background: z.color }" />
+          <span class="text-[11px] text-ink-700" :title="z.shape">{{ shapeGlyph(z) }}</span>
           <input
             v-model="z.name"
             class="flex-1 bg-transparent text-sm font-medium focus:outline-none"
@@ -60,7 +75,6 @@ function fmtZoneDensity(d) { return fmtDensity(d, state.units) }
             class="w-full mt-1.5"
             :class="z.density > CRUSH_THRESHOLD ? 'accent-red-700' : 'accent-ink-900'" />
 
-          <!-- Tick marks: black for the safe regime, red dashed for the crush regime -->
           <div class="relative h-3 -mt-1">
             <div v-for="t in STILL_TICKS" :key="t.ppm"
                  class="absolute -translate-x-1/2 text-[9px] select-none"
@@ -72,6 +86,23 @@ function fmtZoneDensity(d) { return fmtDensity(d, state.units) }
               <div>{{ t.ppm }}</div>
             </div>
           </div>
+
+          <!-- Obstructions sub-list — only shown when this zone has any. -->
+          <div v-if="z.obstructions && z.obstructions.length" class="mt-2 pl-2 border-l-2 border-ink-100">
+            <div class="text-[10px] uppercase tracking-wide text-ink-700 mb-1">Obstructions</div>
+            <div v-for="(o, i) in z.obstructions" :key="o.id"
+                 class="flex items-center justify-between gap-2 text-[11px] text-ink-700">
+              <span>Obstruction {{ i + 1 }}</span>
+              <span class="tabular-nums">{{ fmtArea(obstructionAreaM2(z, o)) }}</span>
+              <button class="text-ink-700 hover:text-red-600 px-1"
+                      @click.stop="deleteObstruction(z.id, o.id)">✕</button>
+            </div>
+          </div>
+          <button v-if="z.vertices.length >= 3"
+                  class="mt-2 text-[11px] text-amber-700 hover:underline"
+                  @click.stop="onAddObstruction(z.id)">
+            + Add obstruction
+          </button>
 
           <div v-if="z.density > CRUSH_THRESHOLD"
                class="mt-2 text-[11px] text-red-700 bg-red-50 border border-red-200 rounded px-2 py-1 leading-snug">

@@ -8,6 +8,7 @@ import StandardPicker from './components/StandardPicker.vue'
 import ResultBar from './components/ResultBar.vue'
 import IndoorOverlay from './components/IndoorOverlay.vue'
 import AboutPanel from './components/AboutPanel.vue'
+import RulerHUD from './components/RulerHUD.vue'
 import { useApp } from './lib/state.js'
 
 const { state, restoreFromUrl } = useApp()
@@ -58,6 +59,7 @@ function onPick(r) { mapRef.value?.fly(r) }
       <section class="flex-1 relative min-h-0">
         <MapCanvas v-if="state.mode === 'outdoor'" ref="mapRef" />
         <IndoorCanvas v-else />
+        <RulerHUD />
         <ResultBar class="absolute left-1/2 -translate-x-1/2 bottom-4 z-10" />
       </section>
     </main>
