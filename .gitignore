@@ -10,3 +10,8 @@ dist
 # Local test images (examples/istockphoto-*.jpg is stock photography
 # with restrictive redistribution terms — kept out of the repo)
 examples/
+
+# Source screen recordings live in demo/ but only the rendered GIF is tracked
+demo/*.mp4
+demo/*.mov
+demo/*.webm

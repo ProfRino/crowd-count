@@ -13,6 +13,8 @@ limit).
 The whole tool runs **entirely in your web browser**. There is no
 installation, no backend, no Python environment, and no build step.
 
+![Demo](demo/demo.gif)
+
 > **Project Lead:** Prof Rino Lovreglio, PhD — Massey University
 >
 > **Disclaimer:** No responsibility is taken for the use or output of this tool.
