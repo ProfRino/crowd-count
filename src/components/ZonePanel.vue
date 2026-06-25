@@ -73,7 +73,9 @@ function onAddObstruction(zoneId) {
             type="range" :min="DENSITY_MIN" :max="DENSITY_MAX" step="0.05"
             v-model.number="z.density"
             class="w-full mt-1.5"
-            :class="z.density > CRUSH_THRESHOLD ? 'accent-red-700' : 'accent-ink-900'" />
+            :class="z.density > 6 ? 'accent-red-700'
+                    : z.density > 4 ? 'accent-amber-500'
+                    : 'accent-ink-900'" />
 
           <div class="relative h-3 -mt-1">
             <div v-for="t in STILL_TICKS" :key="t.ppm"
