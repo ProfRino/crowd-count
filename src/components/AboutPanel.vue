@@ -49,7 +49,37 @@ const emit = defineEmits(['close'])
         <h3 class="font-semibold mt-4">Tech</h3>
         <p class="text-xs text-ink-700">
           Vue 3 + Vite + Tailwind + MapLibre GL (OSM tiles, Esri satellite tiles) + Turf.js.
-          MIT-licensed source.
+        </p>
+
+        <h3 class="font-semibold mt-4">Source code</h3>
+        <p class="text-xs text-ink-700">
+          <a class="underline" href="https://github.com/ProfRino/crowd-count" target="_blank" rel="noopener">
+            github.com/ProfRino/crowd-count
+          </a>
+        </p>
+
+        <h3 class="font-semibold mt-4">License</h3>
+        <p class="text-xs text-ink-700">
+          MIT License —
+          <a class="underline" href="https://github.com/ProfRino/crowd-count/blob/main/LICENSE" target="_blank" rel="noopener">
+            full text
+          </a>.
+          The software is provided <em>"as is"</em>, without warranty of any kind.
+        </p>
+
+        <h3 class="font-semibold mt-4">Citation</h3>
+        <p class="text-xs text-ink-700">
+          If you reference this work, please cite:
+        </p>
+        <blockquote class="text-xs text-ink-900 border-l-2 border-ink-200 pl-3 italic">
+          Lovreglio, R. <em>Crowd Count</em>. Massey University.
+          <a class="underline not-italic" href="https://github.com/ProfRino/crowd-count" target="_blank" rel="noopener">
+            github.com/ProfRino/crowd-count
+          </a>
+        </blockquote>
+
+        <p class="text-[10px] text-ink-700 pt-3 border-t border-ink-100 mt-4">
+          © 2026 Rino Lovreglio · Massey University · All rights reserved.
         </p>
       </section>
     </div>

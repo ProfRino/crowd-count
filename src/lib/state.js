@@ -24,11 +24,7 @@ const state = reactive({
   // Ruler is a transient measurement overlay — never persisted to the permalink.
   ruler: {
     active: false,
-    tool: 'polyline',          // 'polyline' | 'radius'
-    points: [],                // polyline mode: clicked lng/lat or image-px points
-    center: null,              // radius mode
-    radiusPoint: null,         // radius mode
-    dragging: false,
+    points: [],                // clicked lng/lat or image-px points
     cursor: null,              // current pointer position for live segment preview
   },
   ui: { aboutOpen: false, justShared: false },
@@ -72,9 +68,6 @@ function enterMode(mode) {
   state.indoor.calibration = null
   state.ruler.active = false
   state.ruler.points = []
-  state.ruler.center = null
-  state.ruler.radiusPoint = null
-  state.ruler.dragging = false
   state.ruler.cursor = null
   if (mode === 'drawing') state.drawing = 'zone'
   else if (mode === 'obstruction') state.drawing = 'obstruction'
@@ -172,6 +165,10 @@ function zoneAreaM2(zone) { return zoneNetAreaM2(zone) }
 function computeTotals() {
   let area = 0, count = 0
   for (const z of state.zones) {
+    // Skip the in-progress zone while drawing — its area is sliding around
+    // as the user shapes it, and the headline number should only "land" once
+    // the shape is committed.
+    if (state.drawing === 'zone' && z.id === state.selectedZoneId) continue
     const a = zoneAreaM2(z)
     area += a
     count += a * z.density
@@ -251,8 +248,8 @@ if (typeof window !== 'undefined' && !window.__crowdCountKeyHandler) {
     // Esc — exit any active mode cleanly. Also pops last ruler point if mid-polyline.
     if (e.key === 'Escape' && !inField) {
       if (state.ruler.active) {
-        // If a polyline is in flight, drop the last point first; second Esc exits the mode.
-        if (state.ruler.tool === 'polyline' && state.ruler.points.length > 0) {
+        // Drop last polyline point first; second Esc exits ruler mode.
+        if (state.ruler.points.length > 0) {
           state.ruler.points.pop()
           if (state.ruler.points.length === 0) enterMode(null)
         } else {
@@ -272,7 +269,7 @@ if (typeof window !== 'undefined' && !window.__crowdCountKeyHandler) {
     if (!isUndo) return
     if (inField) return
     // Ruler polyline takes priority while active.
-    if (state.ruler.active && state.ruler.tool === 'polyline' && state.ruler.points.length > 0) {
+    if (state.ruler.active && state.ruler.points.length > 0) {
       state.ruler.points.pop()
       e.preventDefault()
       return

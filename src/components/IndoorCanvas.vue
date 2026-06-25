@@ -202,51 +202,35 @@ function drawRuler() {
   ctx.strokeStyle = '#0284c7'
   ctx.lineWidth = 2
   ctx.setLineDash([4, 3])
-  if (state.ruler.tool === 'polyline') {
-    const pts = [...state.ruler.points]
-    if (state.ruler.cursor && pts.length > 0) pts.push(state.ruler.cursor)
-    if (pts.length >= 2) {
-      ctx.beginPath()
-      const [x0, y0] = imageToScreen(pts[0])
-      ctx.moveTo(x0, y0)
-      for (let i = 1; i < pts.length; i++) {
-        const [x, y] = imageToScreen(pts[i])
-        ctx.lineTo(x, y)
-      }
-      ctx.stroke()
+  const pts = [...state.ruler.points]
+  if (state.ruler.cursor && pts.length > 0) pts.push(state.ruler.cursor)
+  if (pts.length >= 2) {
+    ctx.beginPath()
+    const [x0, y0] = imageToScreen(pts[0])
+    ctx.moveTo(x0, y0)
+    for (let i = 1; i < pts.length; i++) {
+      const [x, y] = imageToScreen(pts[i])
+      ctx.lineTo(x, y)
     }
-    ctx.setLineDash([])
-    for (const p of state.ruler.points) {
-      const [x, y] = imageToScreen(p)
-      ctx.fillStyle = '#0284c7'
-      ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fill()
-      ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke()
-    }
-  } else if (state.ruler.tool === 'radius') {
-    const center = state.ruler.center
-    const edge = state.ruler.radiusPoint ?? state.ruler.cursor
-    if (center && edge) {
-      const [cx, cy] = imageToScreen(center)
-      const [ex, ey] = imageToScreen(edge)
-      const r = Math.hypot(ex - cx, ey - cy)
-      ctx.beginPath()
-      ctx.arc(cx, cy, r, 0, Math.PI * 2)
-      ctx.fillStyle = 'rgba(14,165,233,0.08)'
-      ctx.fill()
-      ctx.stroke()
-      // center marker
-      ctx.setLineDash([])
-      ctx.fillStyle = '#0284c7'
-      ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI * 2); ctx.fill()
-    }
+    ctx.stroke()
   }
   ctx.setLineDash([])
+  for (const p of state.ruler.points) {
+    const [x, y] = imageToScreen(p)
+    ctx.fillStyle = '#0284c7'
+    ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fill()
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke()
+  }
 }
 
 function ensurePeopleSampled() {
   const ppm = state.indoor.pixelsPerMeter
   if (!ppm) { peopleCache.clear(); return }
   for (const z of state.zones) {
+    // Suppress people for the in-progress zone until drawing is committed.
+    if (state.drawing === 'zone' && z.id === state.selectedZoneId) {
+      peopleCache.delete(z.id); continue
+    }
     if (z.vertices.length < 3) { peopleCache.delete(z.id); continue }
     const holeStr = (z.obstructions ?? []).map(o => o.vertices.flat().join(',')).join('|')
     const sig = `${z.shape}|${z.density}|${ppm}|${JSON.stringify(z.params)}|${z.vertices.flat().join(',')}|${holeStr}`
@@ -365,15 +349,8 @@ function onMouseDown(e) {
   const x = e.clientX - rect.left, y = e.clientY - rect.top
   const ip = screenToImage(x, y)
 
-  // 1. Ruler radius — mousedown sets center, drag tracks radius
-  if (state.ruler.active && state.ruler.tool === 'radius') {
-    state.ruler.center = ip
-    state.ruler.radiusPoint = ip
-    state.ruler.dragging = true
-    return
-  }
-  // 2. Ruler polyline — click adds a point (handled in mouseup-like)
-  if (state.ruler.active && state.ruler.tool === 'polyline') {
+  // Ruler — click adds a point
+  if (state.ruler.active) {
     state.ruler.points.push(ip)
     return
   }
@@ -446,7 +423,6 @@ function onMouseMove(e) {
 
   if (state.ruler.active) {
     state.ruler.cursor = ip
-    if (state.ruler.dragging && state.ruler.center) state.ruler.radiusPoint = ip
   }
 
   if (state.drawing === 'zone' && selectedZone.value && !dragging) {
@@ -487,7 +463,6 @@ function onMouseMove(e) {
 }
 
 function onMouseUp() {
-  if (state.ruler.dragging) state.ruler.dragging = false
   dragging = null
 }
 
@@ -514,9 +489,8 @@ function onContextMenu(e) {
 }
 
 function onDblClick(e) {
-  if (state.ruler.active && state.ruler.tool === 'polyline') {
+  if (state.ruler.active) {
     e.preventDefault()
-    // Treat as commit — clear cursor so the floating segment doesn't ghost.
     state.ruler.cursor = null
   }
 }
@@ -547,8 +521,7 @@ function startObstructionDrawing() {
   if (!z || z.vertices.length < 3) return
   addObstruction(z.id)
 }
-function startRuler(tool) {
-  state.ruler.tool = tool
+function startRuler() {
   enterMode('ruler')
 }
 function onShapePick(shape) {
@@ -590,23 +563,15 @@ function onShapePick(shape) {
                     ? 'bg-white text-ink-200 border-ink-100 cursor-not-allowed'
                     : 'bg-white text-ink-900 border-ink-100 hover:bg-ink-50'"
                 @click="state.drawing === 'obstruction' ? enterMode(null) : startObstructionDrawing()">
-          {{ state.drawing === 'obstruction' ? 'Drawing obstruction…' : 'Draw obstruction' }}
+          {{ state.drawing === 'obstruction' ? 'Drawing obstruction… (click inside the zone)' : 'Draw obstruction' }}
         </button>
-        <div class="bg-white rounded-md shadow-md border border-ink-100 flex overflow-hidden text-xs">
-          <button class="px-2 py-1.5"
-                  :class="state.ruler.active ? 'bg-sky-600 text-white' : 'text-ink-900 hover:bg-ink-50'"
-                  :disabled="!state.indoor.pixelsPerMeter"
-                  :title="!state.indoor.pixelsPerMeter ? 'Calibrate scale first' : 'Measure distance / radius'"
-                  @click="state.ruler.active ? enterMode(null) : startRuler('polyline')">
-            📏 {{ state.ruler.active ? 'Ruler on' : 'Ruler' }}
-          </button>
-          <button v-if="state.ruler.active" class="px-2 py-1.5 border-l border-ink-100"
-                  :class="state.ruler.tool === 'polyline' ? 'bg-sky-100' : 'hover:bg-ink-50'"
-                  @click="state.ruler.tool = 'polyline'; state.ruler.center = null; state.ruler.radiusPoint = null">Polyline</button>
-          <button v-if="state.ruler.active" class="px-2 py-1.5 border-l border-ink-100"
-                  :class="state.ruler.tool === 'radius' ? 'bg-sky-100' : 'hover:bg-ink-50'"
-                  @click="state.ruler.tool = 'radius'; state.ruler.points = []">Radius</button>
-        </div>
+        <button class="px-3 py-1.5 rounded-md shadow-md text-xs font-medium border"
+                :class="state.ruler.active ? 'bg-sky-600 text-white border-sky-700' : !state.indoor.pixelsPerMeter ? 'bg-white text-ink-200 border-ink-100 cursor-not-allowed' : 'bg-white text-ink-900 border-ink-100 hover:bg-ink-50'"
+                :disabled="!state.indoor.pixelsPerMeter"
+                :title="!state.indoor.pixelsPerMeter ? 'Calibrate scale first' : 'Measure distance'"
+                @click="state.ruler.active ? enterMode(null) : startRuler()">
+          📏 {{ state.ruler.active ? 'Ruler on' : 'Ruler' }}
+        </button>
       </div>
       <!-- Shape pill — only while drawing a zone -->
       <div v-if="state.drawing === 'zone'"
@@ -623,6 +588,14 @@ function onShapePick(shape) {
     <div v-if="state.indoor.imageUrl && !state.indoor.pixelsPerMeter && !state.indoor.calibration"
          class="absolute inset-x-0 bottom-20 mx-auto w-fit max-w-md px-4 py-2 bg-amber-50 border border-amber-200 text-amber-900 rounded shadow text-xs z-10">
       Calibrate the scale (sidebar) before drawing zones, or areas will read as 0&nbsp;m².
+    </div>
+
+    <!-- Helper banner during obstruction drawing -->
+    <div v-if="state.drawing === 'obstruction'"
+         class="absolute inset-x-0 top-32 mx-auto w-fit max-w-md px-4 py-2 bg-amber-50 border border-amber-200 rounded-lg shadow text-xs text-amber-900 z-10 pointer-events-none">
+      <strong>Click inside the selected zone</strong> to drop polygon vertices.
+      Obstructions are always polygons. Right-click a vertex to delete it,
+      Ctrl+Z to undo, Esc to finish.
     </div>
 
     <div v-if="state.indoor.calibration?.phase === 'distance'"

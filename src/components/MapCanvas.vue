@@ -152,6 +152,12 @@ function peopleCollection() {
   const liveIds = new Set()
   for (const z of state.zones) {
     liveIds.add(z.id)
+    // Suppress people for the in-progress zone until drawing is committed —
+    // density × area only "lands" when the shape is finalised.
+    if (state.drawing === 'zone' && z.id === state.selectedZoneId) {
+      peopleCache.delete(z.id)
+      continue
+    }
     if (z.vertices.length < 3) { peopleCache.delete(z.id); continue }
     const sig = zoneSignature(z)
     const cached = peopleCache.get(z.id)
@@ -178,7 +184,7 @@ function peopleCollection() {
 // Ruler GeoJSON ------------------------------------------------------------
 function rulerLineCollection() {
   const pts = [...state.ruler.points]
-  if (state.ruler.cursor && pts.length > 0 && state.ruler.tool === 'polyline') pts.push(state.ruler.cursor)
+  if (state.ruler.cursor && pts.length > 0) pts.push(state.ruler.cursor)
   if (pts.length < 2) return { type: 'FeatureCollection', features: [] }
   return { type: 'FeatureCollection', features: [{
     type: 'Feature', properties: {},
@@ -194,33 +200,6 @@ function rulerVerticesCollection() {
     })),
   }
 }
-function rulerCircleCollection() {
-  if (state.ruler.tool !== 'radius' || !state.ruler.center) return { type: 'FeatureCollection', features: [] }
-  const edge = state.ruler.radiusPoint ?? state.ruler.cursor
-  if (!edge) return { type: 'FeatureCollection', features: [] }
-  const rM = geoDistanceM(state.ruler.center, edge)
-  if (rM <= 0) return { type: 'FeatureCollection', features: [] }
-  // Reuse the same haversine circle generator we use for shape circles.
-  const verts = []
-  const N = 64
-  // Inline haversine destination
-  const R = 6378137
-  const [cLng, cLat] = state.ruler.center
-  const δ = rM / R, φ1 = cLat * Math.PI / 180, λ1 = cLng * Math.PI / 180
-  const sinφ1 = Math.sin(φ1), cosφ1 = Math.cos(φ1), sinδ = Math.sin(δ), cosδ = Math.cos(δ)
-  for (let i = 0; i < N; i++) {
-    const θ = (i / N) * 2 * Math.PI
-    const sinθ = Math.sin(θ), cosθ = Math.cos(θ)
-    const φ2 = Math.asin(sinφ1 * cosδ + cosφ1 * sinδ * cosθ)
-    const λ2 = λ1 + Math.atan2(sinθ * sinδ * cosφ1, cosδ - sinφ1 * Math.sin(φ2))
-    verts.push([((λ2 * 180 / Math.PI) + 540) % 360 - 180, φ2 * 180 / Math.PI])
-  }
-  verts.push(verts[0])
-  return { type: 'FeatureCollection', features: [{
-    type: 'Feature', properties: {},
-    geometry: { type: 'Polygon', coordinates: [verts] },
-  }] }
-}
 
 function refreshSources() {
   if (!map) return
@@ -233,7 +212,6 @@ function refreshRulerSources() {
   if (!map) return
   map.getSource('ruler-line')?.setData(rulerLineCollection())
   map.getSource('ruler-vertices')?.setData(rulerVerticesCollection())
-  map.getSource('ruler-circle')?.setData(rulerCircleCollection())
 }
 
 let peopleTimer = null
@@ -290,7 +268,6 @@ onMounted(() => {
     map.addSource('handles', { type: 'geojson', data: handlesCollection() })
     map.addSource('ruler-line', { type: 'geojson', data: rulerLineCollection() })
     map.addSource('ruler-vertices', { type: 'geojson', data: rulerVerticesCollection() })
-    map.addSource('ruler-circle', { type: 'geojson', data: rulerCircleCollection() })
 
     map.addLayer({ id: 'zones-fill', type: 'fill', source: 'zones-fill',
       paint: { 'fill-color': ['get', 'color'], 'fill-opacity': ['case', ['get', 'selected'], 0.25, 0.12] } })
@@ -303,10 +280,6 @@ onMounted(() => {
       minzoom: 13 })
     map.addLayer({ id: 'obstructions-line', type: 'line', source: 'obstructions-line',
       paint: { 'line-color': ['get', 'color'], 'line-width': 2, 'line-dasharray': [3, 2] } })
-    map.addLayer({ id: 'ruler-circle-fill', type: 'fill', source: 'ruler-circle',
-      paint: { 'fill-color': '#0ea5e9', 'fill-opacity': 0.10 } })
-    map.addLayer({ id: 'ruler-circle-outline', type: 'line', source: 'ruler-circle',
-      paint: { 'line-color': '#0284c7', 'line-width': 2, 'line-dasharray': [4, 3] } })
     map.addLayer({ id: 'ruler-line', type: 'line', source: 'ruler-line',
       paint: { 'line-color': '#0284c7', 'line-width': 2, 'line-dasharray': [4, 3] } })
     map.addLayer({ id: 'ruler-vertices', type: 'circle', source: 'ruler-vertices',
@@ -339,7 +312,6 @@ onMounted(() => {
       // Ruler cursor preview
       if (state.ruler.active) {
         state.ruler.cursor = ll
-        if (state.ruler.dragging && state.ruler.center) state.ruler.radiusPoint = ll
         refreshRulerSources()
       }
       if (!dragging) return
@@ -415,13 +387,10 @@ onMounted(() => {
     map.on('click', (e) => {
       if (suppressNextClick) { suppressNextClick = false; return }
       const ll = [e.lngLat.lng, e.lngLat.lat]
-      // 1. Ruler
+      // 1. Ruler — append a point.
       if (state.ruler.active) {
-        if (state.ruler.tool === 'polyline') {
-          state.ruler.points.push(ll)
-          refreshRulerSources()
-        }
-        // Radius tool uses mousedown/mousemove/mouseup, not click.
+        state.ruler.points.push(ll)
+        refreshRulerSources()
         return
       }
       // 2. Obstruction
@@ -477,29 +446,11 @@ onMounted(() => {
       }
     })
 
-    // ===== Ruler radius FSM (mousedown→drag→mouseup) ===================
-    map.getCanvas().addEventListener('mousedown', (ev) => {
-      if (!state.ruler.active || state.ruler.tool !== 'radius') return
-      if (ev.button !== 0) return
-      const rect = map.getCanvas().getBoundingClientRect()
-      const px = ev.clientX - rect.left, py = ev.clientY - rect.top
-      const ll = map.unproject([px, py])
-      state.ruler.center = [ll.lng, ll.lat]
-      state.ruler.radiusPoint = [ll.lng, ll.lat]
-      state.ruler.dragging = true
-      refreshRulerSources()
-    })
-    map.getCanvas().addEventListener('mouseup', () => {
-      if (state.ruler.dragging) {
-        state.ruler.dragging = false
-        suppressNextClick = true
-      }
-    })
     map.on('dblclick', (e) => {
-      if (state.ruler.active && state.ruler.tool === 'polyline') {
-        // dblclick already pushed a point on the prior single-click; just finalize.
-        // Nothing to do — leaving as-is means the polyline is "committed" and waits for next click.
+      if (state.ruler.active) {
+        // Double-click ends the polyline (cursor preview clears).
         e.preventDefault()
+        state.ruler.cursor = null
       }
     })
     watch(() => state.ruler.active, on => {
@@ -516,6 +467,9 @@ onMounted(() => {
 
   watch(() => state.zones, () => { refreshSources(); schedulePeopleRefresh() }, { deep: true })
   watch(() => state.selectedZoneId, refreshSources)
+  // When drawing mode flips (esp. when it exits) re-sample people for the zone
+  // we were suppressing during the draw.
+  watch(() => state.drawing, () => { refreshSources(); schedulePeopleRefresh() })
   watch(() => state.basemap, applyBasemap)
   watch(() => state.ruler, refreshRulerSources, { deep: true })
 })
@@ -557,8 +511,7 @@ function startObstructionDrawing() {
   if (!z || z.vertices.length < 3) return
   addObstruction(z.id)
 }
-function startRuler(tool) {
-  state.ruler.tool = tool
+function startRuler() {
   enterMode('ruler')
 }
 
@@ -602,25 +555,13 @@ defineExpose({ fly })
                   : 'bg-white text-ink-900 border-ink-100 hover:bg-ink-50'"
               :title="(!selectedZone || selectedZone.vertices.length < 3) ? 'Draw a zone first' : 'Cut an obstruction out of the selected zone'"
               @click="state.drawing === 'obstruction' ? enterMode(null) : startObstructionDrawing()">
-        {{ state.drawing === 'obstruction' ? 'Drawing obstruction…' : 'Draw obstruction' }}
+        {{ state.drawing === 'obstruction' ? 'Drawing obstruction… (click inside the zone)' : 'Draw obstruction' }}
       </button>
-      <div class="bg-white rounded-md shadow-md border border-ink-100 flex overflow-hidden text-xs">
-        <button class="px-2 py-1.5"
-                :class="state.ruler.active ? 'bg-sky-600 text-white' : 'text-ink-900 hover:bg-ink-50'"
-                @click="state.ruler.active ? enterMode(null) : startRuler('polyline')">
-          📏 {{ state.ruler.active ? 'Ruler on' : 'Ruler' }}
-        </button>
-        <button v-if="state.ruler.active" class="px-2 py-1.5 border-l border-ink-100"
-                :class="state.ruler.tool === 'polyline' ? 'bg-sky-100' : 'hover:bg-ink-50'"
-                @click="state.ruler.tool = 'polyline'; state.ruler.center = null; state.ruler.radiusPoint = null">
-          Polyline
-        </button>
-        <button v-if="state.ruler.active" class="px-2 py-1.5 border-l border-ink-100"
-                :class="state.ruler.tool === 'radius' ? 'bg-sky-100' : 'hover:bg-ink-50'"
-                @click="state.ruler.tool = 'radius'; state.ruler.points = []">
-          Radius
-        </button>
-      </div>
+      <button class="px-3 py-1.5 rounded-md shadow-md text-xs font-medium border"
+              :class="state.ruler.active ? 'bg-sky-600 text-white border-sky-700' : 'bg-white text-ink-900 border-ink-100 hover:bg-ink-50'"
+              @click="state.ruler.active ? enterMode(null) : startRuler()">
+        📏 {{ state.ruler.active ? 'Ruler on' : 'Ruler' }}
+      </button>
     </div>
     <!-- Shape pill — only appears while drawing a zone -->
     <div v-if="state.drawing === 'zone'"
@@ -645,5 +586,13 @@ defineExpose({ fly })
   <div v-if="!state.zones.length" class="absolute inset-x-0 top-1/2 -translate-y-1/2 mx-auto w-fit max-w-md px-4 py-3 bg-white/95 rounded-lg shadow-lg text-center text-sm text-ink-700 z-10 pointer-events-none">
     Pick a shape, click <strong>Draw zone</strong>, then click the map.
     Polygons: click vertices. Circles/rectangles: click two points.
+  </div>
+
+  <!-- Helper banner during obstruction drawing -->
+  <div v-if="state.drawing === 'obstruction'"
+       class="absolute inset-x-0 top-32 mx-auto w-fit max-w-md px-4 py-2 bg-amber-50 border border-amber-200 rounded-lg shadow text-xs text-amber-900 z-10 pointer-events-none">
+    <strong>Click inside the selected zone</strong> to drop polygon vertices.
+    Obstructions are always polygons. Right-click a vertex to delete it,
+    Ctrl+Z to undo, Esc to finish.
   </div>
 </template>
