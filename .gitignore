@@ -1,0 +1,12 @@
+node_modules
+dist
+.DS_Store
+*.log
+.vite
+
+# Local Claude Code dev config
+.claude/
+
+# Local test images (examples/istockphoto-*.jpg is stock photography
+# with restrictive redistribution terms — kept out of the repo)
+examples/
