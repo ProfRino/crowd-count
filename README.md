@@ -61,66 +61,44 @@ or any CDN.
   link reproduces a session exactly. No backend.
 * **Polyline undo.** `Ctrl+Z` / `Cmd+Z` removes the last vertex while drawing.
 
-## Download / Try it live
+## How to use it
 
-> **👉 [Run it now in your browser — profrino.github.io/crowd-count](https://profrino.github.io/crowd-count/)**
->
-> No installation, no local server, no account. Modern browsers cache the
-> bundle after the first visit so the app keeps working with no network
-> connection — only the basemap tiles and the OSM Nominatim search require
-> internet.
+> **👉 [Open the app in your browser](https://profrino.github.io/crowd-count/)**
 
-For a versioned snapshot, download the
-[latest release zip](https://github.com/ProfRino/crowd-count/releases/latest)
-— the **`crowd-count-vX.Y.Z-built.zip`** asset is a pre-built static site you
-can serve locally with any HTTP server (no Node required). All tagged
-releases are on the
-[Releases page](https://github.com/ProfRino/crowd-count/releases).
+That's it. **No download, no installation, no account.** Open the link in
+Chrome, Edge, Firefox, or Safari and start drawing. Your browser remembers
+the app after the first visit, so once you've opened it once it keeps
+working even with no internet connection — only the map tiles and the
+place-search box need to reach the web.
 
-## Quick Start
+If you want to bookmark a pinned version that won't change over time, use
+the link in the [Releases page](https://github.com/ProfRino/crowd-count/releases)
+— each release has its own permanent URL.
 
-### A. Hosted version (recommended — zero install)
+## For developers
 
-Open **https://profrino.github.io/crowd-count/** in any modern browser. No
-install, no account, no Node, no Python. The hosted page caches itself on
-first load so it continues working offline; only basemap tiles and the OSM
-Nominatim place-search box need a network connection.
+If you want to fork the code, audit it, run a local copy, or contribute
+changes:
 
-### B. Download a pre-built release ZIP
+* **Clone and run the dev server:**
+  ```sh
+  git clone https://github.com/ProfRino/crowd-count.git
+  cd crowd-count
+  npm install
+  npm run dev        # http://localhost:5173
+  ```
+* **Build a production bundle:** `npm run build` produces a static site in
+  `dist/` that deploys cleanly to GitHub Pages, Cloudflare Pages, Netlify or
+  any static host.
+* **Pre-built ZIP (no Node toolchain):** download
+  [`crowd-count-v1.0.0-built.zip`](https://github.com/ProfRino/crowd-count/releases/latest)
+  from the latest release, unzip, then serve the folder with any one-line
+  HTTP server (`python -m http.server 8765` or `npx serve`). Modern browsers
+  block ES modules from `file://`, so a tiny local server is required —
+  double-clicking `index.html` will not work.
 
-For a pinned version with no Node toolchain:
-
-* **Latest release:** [latest pre-built zip](https://github.com/ProfRino/crowd-count/releases/latest)
-
-Unzip anywhere. The `dist/` folder is a self-contained static site. Modern
-browsers block ES-module `<script type="module">` from `file://`, so you
-need to serve it over loopback for **a few seconds with any one-line
-server** — pick whichever language you already have installed:
-
-```powershell
-# Python (almost always already installed)
-cd dist
-python -m http.server 8765
-
-# or Node (built into npx)
-npx serve dist
-```
-
-Then open <http://localhost:8765/> in any browser. No `npm install` step,
-no build step.
-
-### C. Clone for development
-
-For hacking on the source:
-
-```sh
-git clone https://github.com/ProfRino/crowd-count.git
-cd crowd-count
-npm install
-npm run dev        # http://localhost:5173 — live-reload dev server
-npm run build      # produces a static site in dist/
-npm run preview    # serve the built dist/ at http://localhost:4173
-```
+The GitHub Actions workflow at `.github/workflows/deploy.yml` rebuilds and
+redeploys the hosted version on every push to `main`.
 
 ## Stack
 
@@ -128,10 +106,6 @@ npm run preview    # serve the built dist/ at http://localhost:4173
 [Tailwind CSS](https://tailwindcss.com) +
 [MapLibre GL JS](https://maplibre.org) + [Turf.js](https://turfjs.org) +
 [fflate](https://github.com/101arrowz/fflate). MIT-licensed.
-
-A GitHub Actions workflow at `.github/workflows/deploy.yml` redeploys
-`dist/` to [profrino.github.io/crowd-count](https://profrino.github.io/crowd-count/)
-on every push to `main`.
 
 ## Inspired by
 
