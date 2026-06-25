@@ -578,9 +578,10 @@ defineExpose({ fly })
     </div>
   </div>
 
-  <!-- Satellite/Map toggle — bottom-right corner, above the OSM attribution -->
+  <!-- Satellite/Map toggle — aligned on the same baseline as the OSM "i"
+       attribution circle in the bottom-right corner. -->
   <button
-    class="absolute bottom-10 right-3 z-10 px-2 py-1.5 rounded-md shadow-md text-xs font-medium bg-white border border-ink-100 hover:bg-ink-50"
+    class="absolute bottom-2 right-12 z-10 px-2 py-1 rounded-md shadow-md text-xs font-medium bg-white border border-ink-100 hover:bg-ink-50"
     @click="state.basemap = state.basemap === 'osm' ? 'satellite' : 'osm'">
     {{ state.basemap === 'osm' ? 'Satellite' : 'Map' }}
   </button>

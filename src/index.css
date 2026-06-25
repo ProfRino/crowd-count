@@ -12,3 +12,51 @@ body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
 /* Polygon styling helpers */
 .zone-vertex { width: 10px; height: 10px; border-radius: 9999px; background: #fff; border: 2px solid currentColor; cursor: grab; }
 .zone-vertex:active { cursor: grabbing; }
+
+/* Density slider — keep the UNFILLED track a consistent light grey
+   regardless of which accent-color (black / amber / red) is applied.
+   Chrome by default darkens the unfilled portion to contrast with the
+   accent, which made the right-of-thumb track look black when amber/red
+   was active. Overriding the track + thumb here. */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  background: #e5e7eb; /* gray-200 */
+  border-radius: 999px;
+  outline: none;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  background: transparent;
+  height: 6px;
+  border-radius: 999px;
+}
+input[type="range"]::-moz-range-track {
+  background: #e5e7eb;
+  height: 6px;
+  border-radius: 999px;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: currentColor;
+  cursor: pointer;
+  margin-top: -5px;
+  border: 2px solid #fff;
+  box-shadow: 0 0 1px rgba(0,0,0,0.4);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: currentColor;
+  cursor: pointer;
+  border: 2px solid #fff;
+  box-shadow: 0 0 1px rgba(0,0,0,0.4);
+}
+/* The thumb colour follows the existing accent-* utility classes by
+   borrowing the colour from the input's `color` property. */
+input[type="range"].accent-ink-900   { color: #15181f; }
+input[type="range"].accent-amber-500 { color: #f59e0b; }
+input[type="range"].accent-red-700   { color: #b91c1c; }
