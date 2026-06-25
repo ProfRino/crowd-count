@@ -562,6 +562,18 @@ function startRuler(tool) {
   enterMode('ruler')
 }
 
+// Shape pill click handler: change the draw-tool, and if the currently-selected
+// zone is still empty, mutate its shape live so the user can change their mind
+// after pressing Draw zone but before placing any vertices.
+function onShapePick(shape) {
+  state.drawTool = shape
+  const z = selectedZone.value
+  if (z && z.shape !== shape && z.vertices.length === 0 && !z.params) {
+    z.shape = shape
+    z.params = null
+  }
+}
+
 defineExpose({ fly })
 </script>
 
@@ -572,18 +584,8 @@ defineExpose({ fly })
 
   <!-- Top toolbar -->
   <div class="absolute top-3 left-3 z-10 flex flex-col gap-2 items-start">
-    <!-- Shape pill -->
-    <div class="bg-white rounded-md shadow-md border border-ink-100 flex overflow-hidden text-xs">
-      <button v-for="opt in [['polygon','▱'],['circle','◯'],['rect','▭']]" :key="opt[0]"
-              class="px-2 py-1.5"
-              :class="state.drawTool === opt[0] ? 'bg-ink-900 text-white' : 'text-ink-900 hover:bg-ink-50'"
-              :title="`Set next zone shape: ${opt[0]}`"
-              @click="state.drawTool = opt[0]">
-        {{ opt[1] }} {{ opt[0][0].toUpperCase() + opt[0].slice(1) }}
-      </button>
-    </div>
-    <!-- Draw buttons -->
-    <div class="flex gap-2">
+    <!-- Top row: Draw zone, Draw obstruction, Ruler -->
+    <div class="flex gap-2 flex-wrap">
       <button class="px-3 py-1.5 rounded-md shadow-md text-xs font-medium border"
               :class="state.drawing === 'zone' ? 'bg-emerald-600 text-white border-emerald-700' : 'bg-white text-ink-900 border-ink-100 hover:bg-ink-50'"
               @click="state.drawing === 'zone' ? enterMode(null) : startZoneDrawing()">
@@ -602,23 +604,33 @@ defineExpose({ fly })
               @click="state.drawing === 'obstruction' ? enterMode(null) : startObstructionDrawing()">
         {{ state.drawing === 'obstruction' ? 'Drawing obstruction…' : 'Draw obstruction' }}
       </button>
+      <div class="bg-white rounded-md shadow-md border border-ink-100 flex overflow-hidden text-xs">
+        <button class="px-2 py-1.5"
+                :class="state.ruler.active ? 'bg-sky-600 text-white' : 'text-ink-900 hover:bg-ink-50'"
+                @click="state.ruler.active ? enterMode(null) : startRuler('polyline')">
+          📏 {{ state.ruler.active ? 'Ruler on' : 'Ruler' }}
+        </button>
+        <button v-if="state.ruler.active" class="px-2 py-1.5 border-l border-ink-100"
+                :class="state.ruler.tool === 'polyline' ? 'bg-sky-100' : 'hover:bg-ink-50'"
+                @click="state.ruler.tool = 'polyline'; state.ruler.center = null; state.ruler.radiusPoint = null">
+          Polyline
+        </button>
+        <button v-if="state.ruler.active" class="px-2 py-1.5 border-l border-ink-100"
+                :class="state.ruler.tool === 'radius' ? 'bg-sky-100' : 'hover:bg-ink-50'"
+                @click="state.ruler.tool = 'radius'; state.ruler.points = []">
+          Radius
+        </button>
+      </div>
     </div>
-    <!-- Ruler -->
-    <div class="bg-white rounded-md shadow-md border border-ink-100 flex overflow-hidden text-xs">
-      <button class="px-2 py-1.5"
-              :class="state.ruler.active ? 'bg-sky-600 text-white' : 'text-ink-900 hover:bg-ink-50'"
-              @click="state.ruler.active ? enterMode(null) : startRuler('polyline')">
-        📏 {{ state.ruler.active ? 'Ruler on' : 'Ruler' }}
-      </button>
-      <button v-if="state.ruler.active" class="px-2 py-1.5 border-l border-ink-100"
-              :class="state.ruler.tool === 'polyline' ? 'bg-sky-100' : 'hover:bg-ink-50'"
-              @click="state.ruler.tool = 'polyline'; state.ruler.center = null; state.ruler.radiusPoint = null">
-        Polyline
-      </button>
-      <button v-if="state.ruler.active" class="px-2 py-1.5 border-l border-ink-100"
-              :class="state.ruler.tool === 'radius' ? 'bg-sky-100' : 'hover:bg-ink-50'"
-              @click="state.ruler.tool = 'radius'; state.ruler.points = []">
-        Radius
+    <!-- Shape pill — only appears while drawing a zone -->
+    <div v-if="state.drawing === 'zone'"
+         class="bg-white rounded-md shadow-md border border-ink-100 flex overflow-hidden text-xs">
+      <button v-for="opt in [['polygon','▱'],['circle','◯'],['rect','▭']]" :key="opt[0]"
+              class="px-2 py-1.5"
+              :class="state.drawTool === opt[0] ? 'bg-ink-900 text-white' : 'text-ink-900 hover:bg-ink-50'"
+              :title="`Set zone shape: ${opt[0]}`"
+              @click="onShapePick(opt[0])">
+        {{ opt[1] }} {{ opt[0][0].toUpperCase() + opt[0].slice(1) }}
       </button>
     </div>
   </div>
