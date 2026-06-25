@@ -75,16 +75,16 @@ That's it.
 
 ### Option 2 — Offline, on your own computer
 
-Download the latest version: **[crowd-count.html](https://github.com/ProfRino/crowd-count/releases/latest)**
-(one single file, about 1 MB) from the
+Download **[crowd-count.html](https://github.com/ProfRino/crowd-count/releases/latest/download/crowd-count.html)**
+— one single file, about 1 MB — from the
 [Releases page](https://github.com/ProfRino/crowd-count/releases). Save it
-anywhere, then **double-click it** — the app opens straight in your default
-browser, no server required. You can put it on a USB stick, email it to a
-colleague, or keep it on a desktop folder for an air-gapped laptop.
+anywhere on your computer, then **double-click it**. The app opens straight
+in your default browser, no server, no install. You can email it to a
+colleague, put it on a USB stick, or keep it on an air-gapped laptop.
 
 The map tiles (street map and satellite background) and the place-search
 box do need an internet connection — everything else (drawing, density,
-person rendering, sharing via permalink, indoor floor plans) works fully
+person rendering, indoor floor plans, sharing via permalink) works fully
 offline.
 
 ## For developers
@@ -103,10 +103,12 @@ changes:
   `dist/` that deploys cleanly to GitHub Pages, Cloudflare Pages, Netlify or
   any static host.
 * **Single-file build:** `npm run build` produces a self-contained
-  `dist/index.html` (~1 MB) that double-clicks straight into any browser
-  via `file://`. This is the same artefact attached to each GitHub release
-  as `crowd-count.html`. All assets — JS, CSS, fonts, the favicon — are
-  inlined via [`vite-plugin-singlefile`](https://github.com/richardtallent/vite-plugin-singlefile).
+  `dist/index.html` (~1 MB) plus a byte-identical `dist/crowd-count.html`
+  that double-clicks straight into any browser via `file://`. The `index.html`
+  copy is what GitHub Pages serves; the renamed `crowd-count.html` is the
+  one attached to each GitHub release. All assets — JS, CSS, fonts, the
+  favicon — are inlined via
+  [`vite-plugin-singlefile`](https://github.com/richardtallent/vite-plugin-singlefile).
 
 The GitHub Actions workflow at `.github/workflows/deploy.yml` rebuilds and
 redeploys the hosted version on every push to `main`, and the
