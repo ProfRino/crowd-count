@@ -27,9 +27,9 @@ const emit = defineEmits(['close'])
           or Keith Still's upper safe limit).
         </p>
         <p class="text-amber-900 bg-amber-50 border border-amber-200 rounded p-2">
-          Above ~5&nbsp;ppl/m&sup2; crowds enter the <strong>crush-density regime</strong> where the
-          linear area&times;density model is misleading — the safety question is no longer
-          how many people are present, but whether they can still control their own motion.
+          Above ~5&nbsp;ppl/m&sup2; density alone becomes a less reliable safety indicator. Many
+          factors beyond density shape what happens in a real crowd — flow direction,
+          available exits, surface conditions, group behaviour, and crowd composition all matter.
         </p>
 
         <h3 class="font-semibold mt-4">Demo content</h3>

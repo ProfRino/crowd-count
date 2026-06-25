@@ -105,10 +105,10 @@ function onAddObstruction(zoneId) {
           </button>
 
           <div v-if="z.density > CRUSH_THRESHOLD"
-               class="mt-2 text-[11px] text-red-700 bg-red-50 border border-red-200 rounded px-2 py-1 leading-snug">
-            Above {{ CRUSH_THRESHOLD }} ppl/m² is the <strong>crush regime</strong> — area × density
-            no longer estimates a safe headcount, only a crowd that has likely lost the ability
-            to control its own motion.
+               class="mt-2 text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded px-2 py-1 leading-snug">
+            Above {{ CRUSH_THRESHOLD }} ppl/m² density alone stops being a reliable indicator.
+            Real-world crowd safety also depends on flow direction, available exits, surface
+            conditions, group behaviour, and crowd composition.
           </div>
 
           <div v-if="z.vertices.length >= 3" class="mt-2 flex items-center gap-1.5">
