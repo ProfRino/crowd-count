@@ -152,9 +152,11 @@ function peopleCollection() {
   const liveIds = new Set()
   for (const z of state.zones) {
     liveIds.add(z.id)
-    // Suppress people for the in-progress zone until drawing is committed —
-    // density × area only "lands" when the shape is finalised.
-    if (state.drawing === 'zone' && z.id === state.selectedZoneId) {
+    // Suppress people for the in-progress zone (whether the user is sizing a
+    // new shape OR carving an obstruction from the same parent zone) until
+    // drawing is committed. Re-sampling on every vertex during a draft hole
+    // can produce degenerate inner rings that crash the symbol layer.
+    if (state.drawing && z.id === state.selectedZoneId) {
       peopleCache.delete(z.id)
       continue
     }

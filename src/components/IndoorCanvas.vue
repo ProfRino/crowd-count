@@ -227,8 +227,9 @@ function ensurePeopleSampled() {
   const ppm = state.indoor.pixelsPerMeter
   if (!ppm) { peopleCache.clear(); return }
   for (const z of state.zones) {
-    // Suppress people for the in-progress zone until drawing is committed.
-    if (state.drawing === 'zone' && z.id === state.selectedZoneId) {
+    // Suppress people for the in-progress zone (including obstruction
+    // drawing in the same parent zone) until drawing is committed.
+    if (state.drawing && z.id === state.selectedZoneId) {
       peopleCache.delete(z.id); continue
     }
     if (z.vertices.length < 3) { peopleCache.delete(z.id); continue }

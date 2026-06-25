@@ -165,10 +165,11 @@ function zoneAreaM2(zone) { return zoneNetAreaM2(zone) }
 function computeTotals() {
   let area = 0, count = 0
   for (const z of state.zones) {
-    // Skip the in-progress zone while drawing — its area is sliding around
+    // Skip the in-progress zone while drawing (either a new shape or a new
+    // obstruction cut from the parent zone) — its net area is sliding around
     // as the user shapes it, and the headline number should only "land" once
     // the shape is committed.
-    if (state.drawing === 'zone' && z.id === state.selectedZoneId) continue
+    if (state.drawing && z.id === state.selectedZoneId) continue
     const a = zoneAreaM2(z)
     area += a
     count += a * z.density
