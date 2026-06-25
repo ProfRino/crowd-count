@@ -26,11 +26,6 @@ const emit = defineEmits(['close'])
           to anchor the density to a published threshold (Purple Guide, Green Guide, NFPA 101,
           or Keith Still's upper safe limit).
         </p>
-        <p class="text-amber-900 bg-amber-50 border border-amber-200 rounded p-2">
-          Above ~5&nbsp;ppl/m&sup2; density alone becomes a less reliable safety indicator. Many
-          factors beyond density shape what happens in a real crowd — flow direction,
-          available exits, surface conditions, group behaviour, and crowd composition all matter.
-        </p>
 
         <h3 class="font-semibold mt-4">Demo content</h3>
         <ul class="list-disc pl-5 space-y-1 text-ink-900 text-xs">
