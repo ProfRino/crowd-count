@@ -63,17 +63,29 @@ or any CDN.
 
 ## How to use it
 
-> **👉 [Open the app in your browser](https://profrino.github.io/crowd-count/)**
+You have **two equally simple ways** to run the app — both with no
+installation, no account, and no server.
 
-That's it. **No download, no installation, no account.** Open the link in
-Chrome, Edge, Firefox, or Safari and start drawing. Your browser remembers
-the app after the first visit, so once you've opened it once it keeps
-working even with no internet connection — only the map tiles and the
-place-search box need to reach the web.
+### Option 1 — Online
 
-If you want to bookmark a pinned version that won't change over time, use
-the link in the [Releases page](https://github.com/ProfRino/crowd-count/releases)
-— each release has its own permanent URL.
+> **👉 [Open it in your browser — profrino.github.io/crowd-count](https://profrino.github.io/crowd-count/)**
+
+Just open the link in Chrome, Edge, Firefox, or Safari and start drawing.
+That's it.
+
+### Option 2 — Offline, on your own computer
+
+Download the latest version: **[crowd-count.html](https://github.com/ProfRino/crowd-count/releases/latest)**
+(one single file, about 1 MB) from the
+[Releases page](https://github.com/ProfRino/crowd-count/releases). Save it
+anywhere, then **double-click it** — the app opens straight in your default
+browser, no server required. You can put it on a USB stick, email it to a
+colleague, or keep it on a desktop folder for an air-gapped laptop.
+
+The map tiles (street map and satellite background) and the place-search
+box do need an internet connection — everything else (drawing, density,
+person rendering, sharing via permalink, indoor floor plans) works fully
+offline.
 
 ## For developers
 
@@ -90,15 +102,16 @@ changes:
 * **Build a production bundle:** `npm run build` produces a static site in
   `dist/` that deploys cleanly to GitHub Pages, Cloudflare Pages, Netlify or
   any static host.
-* **Pre-built ZIP (no Node toolchain):** download
-  [`crowd-count-v1.0.0-built.zip`](https://github.com/ProfRino/crowd-count/releases/latest)
-  from the latest release, unzip, then serve the folder with any one-line
-  HTTP server (`python -m http.server 8765` or `npx serve`). Modern browsers
-  block ES modules from `file://`, so a tiny local server is required —
-  double-clicking `index.html` will not work.
+* **Single-file build:** `npm run build` produces a self-contained
+  `dist/index.html` (~1 MB) that double-clicks straight into any browser
+  via `file://`. This is the same artefact attached to each GitHub release
+  as `crowd-count.html`. All assets — JS, CSS, fonts, the favicon — are
+  inlined via [`vite-plugin-singlefile`](https://github.com/richardtallent/vite-plugin-singlefile).
 
 The GitHub Actions workflow at `.github/workflows/deploy.yml` rebuilds and
-redeploys the hosted version on every push to `main`.
+redeploys the hosted version on every push to `main`, and the
+[`release.yml`](.github/workflows/release.yml) workflow attaches a fresh
+single-file build to every tagged release.
 
 ## Stack
 
@@ -106,14 +119,6 @@ redeploys the hosted version on every push to `main`.
 [Tailwind CSS](https://tailwindcss.com) +
 [MapLibre GL JS](https://maplibre.org) + [Turf.js](https://turfjs.org) +
 [fflate](https://github.com/101arrowz/fflate). MIT-licensed.
-
-## Inspired by
-
-The area × density approach was popularised by
-[MapChecking](https://github.com/paraboul/mapchecking) (Anthony Catel, MIT
-licensed). This project rebuilds the idea from scratch with multi-zone
-management, codified safety thresholds, indoor floor-plan support, and the
-crowd-visualisation layer.
 
 ## Citation
 
