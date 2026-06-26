@@ -87,6 +87,15 @@ box do need an internet connection — everything else (drawing, density,
 person rendering, indoor floor plans, sharing via permalink) works fully
 offline.
 
+## Tutorial
+
+A short walk-through showing how to draw zones, set densities, and read the
+estimate:
+
+[![Watch the tutorial](https://img.youtube.com/vi/TPXZ6oP3dDE/hqdefault.jpg)](https://youtu.be/TPXZ6oP3dDE)
+
+> 📺 **[Watch on YouTube — youtu.be/TPXZ6oP3dDE](https://youtu.be/TPXZ6oP3dDE)**
+
 ## For developers
 
 If you want to fork the code, audit it, run a local copy, or contribute
