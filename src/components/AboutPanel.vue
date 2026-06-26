@@ -41,12 +41,36 @@ const emit = defineEmits(['close'])
           <li>NFPA 101 Table 7.3.1.2 — Life Safety Code occupant load factors.</li>
         </ul>
 
-        <h3 class="font-semibold mt-4">Tech</h3>
-        <p class="text-xs text-ink-700">
-          Vue 3 + Vite + Tailwind + MapLibre GL (OSM tiles, Esri satellite tiles) + Turf.js.
+        <h3 class="font-semibold mt-4">Tutorial</h3>
+        <p class="text-xs text-ink-700 mb-2">
+          Short walk-through of how to draw zones, set densities, and read the estimate.
+        </p>
+        <div class="relative w-full rounded-md overflow-hidden border border-ink-100"
+             style="padding-top: 56.25%">
+          <iframe
+            class="absolute inset-0 w-full h-full"
+            src="https://www.youtube-nocookie.com/embed/TPXZ6oP3dDE"
+            title="Crowd Count — tutorial"
+            loading="lazy"
+            referrerpolicy="strict-origin-when-cross-origin"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen />
+        </div>
+        <p class="text-[11px] text-ink-700 mt-1">
+          Trouble loading?
+          <a class="underline" href="https://youtu.be/TPXZ6oP3dDE" target="_blank" rel="noopener">
+            Watch on YouTube
+          </a>.
         </p>
 
-        <h3 class="font-semibold mt-4">Source code</h3>
+        <h3 class="font-semibold mt-6 pt-3 border-t border-ink-100">For developers</h3>
+
+        <h4 class="font-semibold mt-3 text-sm">Tech</h4>
+        <p class="text-xs text-ink-700">
+          Vue 3 + Vite + Tailwind + MapLibre GL (OSM tiles, Esri satellite tiles) + Turf.js + Three.js (3D density reference).
+        </p>
+
+        <h4 class="font-semibold mt-3 text-sm">Source code</h4>
         <p class="text-xs text-ink-700">
           <a class="underline" href="https://github.com/ProfRino/crowd-count" target="_blank" rel="noopener">
             github.com/ProfRino/crowd-count
