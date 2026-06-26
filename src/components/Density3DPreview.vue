@@ -529,9 +529,6 @@ onBeforeUnmount(() => {
         <button class="text-xs px-2 h-7 rounded border"
                 :class="mode === 'compare' ? 'bg-ink-900 text-white border-ink-900' : 'bg-white border-ink-100 hover:bg-ink-50'"
                 @click="pickMode('compare')">Compare</button>
-        <button class="text-xs w-7 h-7 rounded border bg-white border-ink-100 hover:bg-ink-50"
-                title="Reset view"
-                @click="resetCamera">↺</button>
         <button class="text-xs w-7 h-7 rounded text-ink-700 hover:text-ink-900"
                 title="Close"
                 @click="emit('close')">✕</button>

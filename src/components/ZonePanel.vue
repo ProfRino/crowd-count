@@ -9,8 +9,16 @@ const {
   addObstruction, deleteObstruction, enterMode,
 } = useApp()
 
-function tickPos(ppm) {
-  return ((ppm - DENSITY_MIN) / (DENSITY_MAX - DENSITY_MIN)) * 100
+// Slider thumbs have a fixed pixel width and the runnable track inset by
+// half the thumb on each side; raw % positions therefore don't line up with
+// the thumb. Offset each tick by (0.5 - pct) * THUMB_W so the labels track
+// the thumb exactly.
+const THUMB_W_PX = 16
+function tickStyle(ppm) {
+  const pct = ((ppm - DENSITY_MIN) / (DENSITY_MAX - DENSITY_MIN)) * 100
+  const offset = (0.5 - pct / 100) * THUMB_W_PX
+  const sign = offset >= 0 ? '+' : '-'
+  return { left: `calc(${pct}% ${sign} ${Math.abs(offset)}px)` }
 }
 
 function fmtArea(m2) { return fmtAreaCompact(m2, state.units) }
@@ -81,7 +89,7 @@ function onAddObstruction(zoneId) {
             <div v-for="t in STILL_TICKS" :key="t.ppm"
                  class="absolute -translate-x-1/2 text-[9px] select-none"
                  :class="t.crush ? 'text-red-700' : 'text-ink-700'"
-                 :style="{ left: tickPos(t.ppm) + '%' }"
+                 :style="tickStyle(t.ppm)"
                  :title="t.label">
               <div class="h-1.5 w-px mx-auto"
                    :class="t.crush ? 'bg-red-400' : 'bg-ink-200'" />

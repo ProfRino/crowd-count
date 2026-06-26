@@ -8,6 +8,12 @@ body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
 /* MapLibre tweaks */
 .maplibregl-ctrl-attrib { font-size: 10px; }
 .maplibregl-canvas { outline: none; }
+/* Shift the bottom-right control group (which holds the OSM attribution)
+   left so the Satellite/Map button can sit in the corner without the
+   expanded © text overlapping it. Reading order then becomes (i) → Satellite.
+   !important needed because MapLibre's own stylesheet is loaded after
+   this one and sets `right: 0` with the same specificity. */
+.maplibregl-ctrl-bottom-right { right: 76px !important; }
 
 /* Polygon styling helpers */
 .zone-vertex { width: 10px; height: 10px; border-radius: 9999px; background: #fff; border: 2px solid currentColor; cursor: grab; }

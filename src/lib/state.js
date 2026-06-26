@@ -38,7 +38,7 @@ function addZone(name = null, shape = state.drawTool ?? 'polygon', params = null
   const z = {
     id: newZoneId(),
     name: name ?? `Zone ${i + 1}`,
-    density: 1.5,
+    density: 2,
     color: pickColor(i),
     shape,            // 'polygon' | 'circle' | 'rect'
     params,           // null for polygon; { kind, center, radiusM } for circle; { kind, a, b } for rect

@@ -9,6 +9,9 @@ const {
   state, getSelectedZone, addZone, addObstruction, enterMode,
 } = useApp()
 const selectedZone = computed(() => getSelectedZone())
+const canvasCursor = computed(() =>
+  (state.drawing || state.indoor.calibration || state.ruler.active) ? 'crosshair' : 'default'
+)
 
 const distanceInput = ref('10')
 const distanceInputEl = ref(null)
@@ -540,7 +543,7 @@ function onShapePick(shape) {
     <canvas
       ref="canvas"
       class="absolute inset-0 w-full h-full"
-      :style="{ cursor: (state.drawing || state.indoor.calibration || state.ruler.active) ? 'crosshair' : 'default' }"
+      :style="{ cursor: canvasCursor }"
       @mousedown="onMouseDown"
       @mousemove="onMouseMove"
       @mouseup="onMouseUp"

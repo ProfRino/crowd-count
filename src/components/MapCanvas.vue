@@ -256,7 +256,7 @@ onMounted(() => {
   map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right')
   const scaleCtrl = new maplibregl.ScaleControl({ maxWidth: 140, unit: state.units })
   map.addControl(scaleCtrl, 'bottom-left')
-  watch(() => state.units, (u) => { scaleCtrl.setUnit(u) })
+  watch(() => state.units, (u) => { if (map) scaleCtrl.setUnit(u) })
 
   map.on('load', () => {
     const { imageData, pixelRatio } = makePersonTopIcon()
@@ -461,19 +461,19 @@ onMounted(() => {
 
     // Cursor cue while drawing or rulering.
     watch(() => [state.drawing, state.ruler.active], () => {
-      map.getCanvas().style.cursor = defaultCursor()
+      if (map) map.getCanvas().style.cursor = defaultCursor()
     }, { immediate: true })
 
     applyBasemap()
   })
 
-  watch(() => state.zones, () => { refreshSources(); schedulePeopleRefresh() }, { deep: true })
-  watch(() => state.selectedZoneId, refreshSources)
+  watch(() => state.zones, () => { if (map) { refreshSources(); schedulePeopleRefresh() } }, { deep: true })
+  watch(() => state.selectedZoneId, () => { if (map) refreshSources() })
   // When drawing mode flips (esp. when it exits) re-sample people for the zone
   // we were suppressing during the draw.
-  watch(() => state.drawing, () => { refreshSources(); schedulePeopleRefresh() })
-  watch(() => state.basemap, applyBasemap)
-  watch(() => state.ruler, refreshRulerSources, { deep: true })
+  watch(() => state.drawing, () => { if (map) { refreshSources(); schedulePeopleRefresh() } })
+  watch(() => state.basemap, () => { if (map) applyBasemap() })
+  watch(() => state.ruler, () => { if (map) refreshRulerSources() }, { deep: true })
 })
 
 function isPointInsideRing([px, py], verts) {
@@ -578,10 +578,11 @@ defineExpose({ fly })
     </div>
   </div>
 
-  <!-- Satellite/Map toggle — aligned on the same baseline as the OSM "i"
-       attribution circle in the bottom-right corner. -->
+  <!-- Satellite/Map toggle — sits in the bottom-right corner; the OSM
+       attribution control is pushed left of it via CSS so the order reads
+       (i) → Satellite. -->
   <button
-    class="absolute bottom-2 right-12 z-10 px-2 py-1 rounded-md shadow-md text-xs font-medium bg-white border border-ink-100 hover:bg-ink-50"
+    class="absolute bottom-2 right-2 z-10 px-2 py-1 rounded-md shadow-md text-xs font-medium bg-white border border-ink-100 hover:bg-ink-50"
     @click="state.basemap = state.basemap === 'osm' ? 'satellite' : 'osm'">
     {{ state.basemap === 'osm' ? 'Satellite' : 'Map' }}
   </button>
