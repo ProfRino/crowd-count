@@ -100,3 +100,77 @@ function roundPt([x, y]) { return [round(x, 6), round(y, 6)] }
 
 const COLORS = ['#2563eb', '#dc2626', '#16a34a', '#9333ea', '#ea580c', '#0891b2', '#db2777']
 export function pickColor(i) { return COLORS[i % COLORS.length] }
+
+// --- Project file format (Save / Open) ------------------------------------
+// Unlike the permalink format, project files are human-readable JSON: they
+// get emailed, version-controlled, diffed. Schema:
+// {
+//   format: 'crowd-count.project',
+//   formatVersion: 1,
+//   savedAt: '2026-06-27T...',  // ISO timestamp (informational only)
+//   view, standard, basemap,
+//   zones: [{ name, density, shape, params, vertices, obstructions: [...] }],
+// }
+const PROJECT_FORMAT = 'crowd-count.project'
+const PROJECT_VERSION = 1
+
+export function serializeProject(state, now = new Date().toISOString()) {
+  const payload = {
+    format: PROJECT_FORMAT,
+    formatVersion: PROJECT_VERSION,
+    savedAt: now,
+    view: {
+      lng: round(state.view.lng, 6),
+      lat: round(state.view.lat, 6),
+      zoom: round(state.view.zoom, 3),
+    },
+    standard: state.standard,
+    basemap: state.basemap,
+    zones: state.zones.map((z, i) => ({
+      name: z.name,
+      density: round(z.density, 3),
+      color: z.color ?? pickColor(i),
+      shape: z.shape ?? 'polygon',
+      params: z.params ?? null,
+      vertices: z.vertices.map(roundPt),
+      obstructions: (z.obstructions ?? []).map((o, j) => ({
+        id: `o${i}_${j}`,
+        vertices: o.vertices.map(roundPt),
+      })),
+    })),
+  }
+  return JSON.stringify(payload, null, 2)
+}
+
+export function loadProject(jsonString) {
+  let p
+  try { p = JSON.parse(jsonString) } catch { return { error: 'Not valid JSON.' } }
+  if (!p || p.format !== PROJECT_FORMAT) {
+    return { error: 'Not a Crowd Count project file.' }
+  }
+  if (typeof p.formatVersion !== 'number' || p.formatVersion > PROJECT_VERSION) {
+    return { error: `Project file uses format version ${p.formatVersion} — this build understands up to ${PROJECT_VERSION}.` }
+  }
+  if (!p.view || !Array.isArray(p.zones)) {
+    return { error: 'Project file is missing required fields.' }
+  }
+  return {
+    project: {
+      view: { lng: +p.view.lng, lat: +p.view.lat, zoom: +p.view.zoom },
+      standard: p.standard ?? 'purple',
+      basemap: p.basemap ?? 'osm',
+      zones: p.zones.map((z, i) => ({
+        id: `z${i}`,
+        name: z.name ?? `Zone ${i + 1}`,
+        density: +z.density,
+        color: z.color ?? pickColor(i),
+        shape: z.shape ?? 'polygon',
+        params: z.params ?? null,
+        vertices: Array.isArray(z.vertices) ? z.vertices : [],
+        obstructions: Array.isArray(z.obstructions)
+          ? z.obstructions.map((o, j) => ({ id: `o${i}_${j}`, vertices: Array.isArray(o.vertices) ? o.vertices : [] }))
+          : [],
+      })),
+    },
+  }
+}

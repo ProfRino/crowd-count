@@ -1,7 +1,7 @@
 import { reactive, watch } from 'vue'
 import { geodesicAreaM2, planarAreaM2 } from './area.js'
 import { badgeFor } from './standards.js'
-import { encodeState, decodeState, pickColor } from './share.js'
+import { encodeState, decodeState, pickColor, serializeProject, loadProject } from './share.js'
 import { rebuildVertices } from './shapes.js'
 
 const DEFAULT_VIEW = { lng: -77.0470, lat: 38.8895, zoom: 16 }  // National Mall, in front of the Lincoln Memorial
@@ -238,6 +238,45 @@ function shareLink() {
   return location.origin + location.pathname + '#' + hash
 }
 
+// --- Save / Open project files -------------------------------------------
+function saveProjectToFile() {
+  const json = serializeProject({
+    view: state.view, standard: state.standard, basemap: state.basemap, zones: state.zones,
+  })
+  const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')
+  const blob = new Blob([json], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `crowd-count-${stamp}.json`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
+
+function openProjectFromFile(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      const { project, error } = loadProject(String(reader.result ?? ''))
+      if (error) { resolve({ error }); return }
+      // Replace state. Clear hash so the loaded project takes precedence over
+      // any stale permalink in the URL.
+      enterMode(null)
+      state.view = project.view
+      state.standard = project.standard
+      state.basemap = project.basemap
+      state.zones = project.zones
+      state.selectedZoneId = project.zones[0]?.id ?? null
+      history.replaceState(null, '', location.pathname + location.search)
+      resolve({ ok: true })
+    }
+    reader.onerror = () => resolve({ error: 'Could not read file.' })
+    reader.readAsText(file)
+  })
+}
+
 watch(() => [state.view, state.zones, state.standard, state.basemap],
   () => scheduleShare(), { deep: true })
 
@@ -325,5 +364,6 @@ export function useApp() {
     zoneAreaM2, zoneGrossAreaM2, zoneNetAreaM2, obstructionAreaM2,
     zoneBadge,
     restoreFromUrl, shareLink,
+    saveProjectToFile, openProjectFromFile,
   }
 }
