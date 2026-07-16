@@ -8,7 +8,8 @@ export const STANDARDS = {
   purple: {
     key: 'purple',
     name: 'UK Purple Guide',
-    short: 'Purple 2.0',
+    limitName: 'Purple Guide',
+    short: 'Purple',
     threshold: 2.0,
     blurb: 'Planning ceiling for outdoor mixed-audience events.',
     cite: 'The Purple Guide to Health, Safety and Welfare at Music and Other Events.',
@@ -16,7 +17,8 @@ export const STANDARDS = {
   green: {
     key: 'green',
     name: 'UK Green Guide (standing terrace)',
-    short: 'Green 4.7',
+    limitName: 'Green Guide',
+    short: 'Green',
     threshold: 4.7,
     blurb: 'Upper limit for standing-viewing accommodation at sports grounds.',
     cite: 'Guide to Safety at Sports Grounds (Green Guide).',
@@ -24,7 +26,8 @@ export const STANDARDS = {
   nfpa: {
     key: 'nfpa',
     name: 'NFPA 101 standing assembly',
-    short: 'NFPA 2.15',
+    limitName: 'NFPA 101',
+    short: 'NFPA',
     threshold: NFPA_STANDING_PPM2,
     blurb: '5 net sq ft per person — US standing-assembly occupant load factor.',
     cite: 'NFPA 101 Table 7.3.1.2.',
@@ -32,7 +35,8 @@ export const STANDARDS = {
   still: {
     key: 'still',
     name: 'Still — upper safe limit',
-    short: 'Still 5.0',
+    limitName: 'Still',
+    short: 'Still',
     threshold: 5.0,
     blurb: 'Above this, crush dynamics dominate; treat as a safety question, not a headcount.',
     cite: 'G. K. Still, gkstill.com/Support/crowd-density.',

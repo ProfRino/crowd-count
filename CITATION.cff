@@ -11,12 +11,15 @@ repository-code: "https://github.com/ProfRino/crowd-count"
 url: "https://github.com/ProfRino/crowd-count"
 abstract: >
   A browser-only crowd-size estimator. Draws polygons on outdoor maps
-  (MapLibre + OpenStreetMap) or on uploaded indoor floor plans, multiplies
-  area by a user-chosen crowd density, and benchmarks the estimate against
-  codified safety thresholds (UK Purple Guide, Green Guide, NFPA 101, Still's
-  upper safe limit). Renders top-down person symbols at real-world 0.6 m
-  scale via a jittered-grid sampler. Supports multi-zone management, a
-  metric/imperial toggle, and fflate-compressed permalink sharing — with no
+  (MapLibre + OpenStreetMap, or optional Google basemaps) or on uploaded
+  indoor floor plans, multiplies area by a user-chosen crowd density —
+  uniform or a linear gradient — and benchmarks the estimate against
+  codified safety thresholds (UK Purple Guide, Green Guide, NFPA 101,
+  Still's upper safe limit). Renders top-down person symbols at real-world
+  scale, a full 3D site view with instanced crowds and optional Google
+  Photorealistic 3D Tiles, and a 3D density reference for 1-6 people per
+  square metre. Supports multi-zone management, a metric/imperial toggle,
+  project save/open, and fflate-compressed permalink sharing — with no
   backend, no installation, and no account.
 keywords:
   - crowd safety
@@ -28,7 +31,8 @@ keywords:
   - Green Guide
   - MapLibre
   - OpenStreetMap
+  - 3D visualisation
   - browser
 license: MIT
-version: "1.5.0"
-date-released: "2026-06-26"
+version: "2.0.0"
+date-released: "2026-07-16"

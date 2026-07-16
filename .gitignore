@@ -15,3 +15,12 @@ examples/
 demo/*.mp4
 demo/*.mov
 demo/*.webm
+
+# Animated crowd GLBs (~430 MB total; two files exceed GitHub's 100 MB
+# per-file limit). Distributed as GitHub release assets instead — the app
+# streams them from the release URL when no local copy is served.
+public/crowd-models/
+
+# Local 3D-model working files and prototypes, not part of the app
+3d humans/
+crowd_density_3d_visualizer.html

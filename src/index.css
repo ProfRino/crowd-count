@@ -2,67 +2,86 @@
 @tailwind components;
 @tailwind utilities;
 
-html, body, #app { height: 100%; }
-body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+html,
+body,
+#app {
+  height: 100%;
+}
+
+body {
+  font-family:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+}
 
 /* MapLibre tweaks */
-.maplibregl-ctrl-attrib { font-size: 10px; }
-.maplibregl-canvas { outline: none; }
-/* Shift the bottom-right control group (which holds the OSM attribution)
-   left so the Satellite/Map button can sit in the corner without the
-   expanded © text overlapping it. Reading order then becomes (i) → Satellite.
-   !important needed because MapLibre's own stylesheet is loaded after
-   this one and sets `right: 0` with the same specificity. */
-.maplibregl-ctrl-bottom-right { right: 76px !important; }
+.maplibregl-ctrl-attrib {
+  font-size: 10px;
+}
+
+.maplibregl-canvas {
+  outline: none;
+}
 
 /* Polygon styling helpers */
-.zone-vertex { width: 10px; height: 10px; border-radius: 9999px; background: #fff; border: 2px solid currentColor; cursor: grab; }
-.zone-vertex:active { cursor: grabbing; }
+.zone-vertex {
+  width: 10px;
+  height: 10px;
+  border-radius: 9999px;
+  background: #fff;
+  border: 2px solid currentColor;
+  cursor: grab;
+}
 
-/* Density slider — keep the UNFILLED track a consistent light grey
-   regardless of which accent-color (black / amber / red) is applied.
-   Chrome by default darkens the unfilled portion to contrast with the
-   accent, which made the right-of-thumb track look black when amber/red
-   was active. Overriding the track + thumb here. */
+.zone-vertex:active {
+  cursor: grabbing;
+}
+
+/* Density slider: report style. The track stays grey; the thumb carries the status colour. */
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
   height: 6px;
-  background: #e5e7eb; /* gray-200 */
+  background: #e5e7eb;
   border-radius: 999px;
   outline: none;
 }
+
 input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
   background: transparent;
-  height: 6px;
-  border-radius: 999px;
 }
+
 input[type="range"]::-moz-range-track {
-  background: #e5e7eb;
   height: 6px;
   border-radius: 999px;
+  background: #e5e7eb;
 }
+
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 16px; height: 16px;
-  border-radius: 50%;
-  background: currentColor;
-  cursor: pointer;
+  width: 16px;
+  height: 16px;
   margin-top: -5px;
-  border: 2px solid #fff;
-  box-shadow: 0 0 1px rgba(0,0,0,0.4);
-}
-input[type="range"]::-moz-range-thumb {
-  width: 16px; height: 16px;
-  border-radius: 50%;
-  background: currentColor;
   cursor: pointer;
   border: 2px solid #fff;
-  box-shadow: 0 0 1px rgba(0,0,0,0.4);
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0.4);
 }
-/* The thumb colour follows the existing accent-* utility classes by
-   borrowing the colour from the input's `color` property. */
-input[type="range"].accent-ink-900   { color: #15181f; }
+
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0.4);
+}
+
+input[type="range"].accent-ink-900 { color: #15181f; }
 input[type="range"].accent-amber-500 { color: #f59e0b; }
-input[type="range"].accent-red-700   { color: #b91c1c; }
+input[type="range"].accent-red-700 { color: #b91c1c; }

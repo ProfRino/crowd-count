@@ -1,9 +1,11 @@
 <script setup>
+import { computed } from 'vue'
 import { useApp } from '../lib/state.js'
 import { STANDARDS } from '../lib/standards.js'
 
 const { state } = useApp()
 const items = Object.values(STANDARDS)
+const standardBlurb = computed(() => STANDARDS[state.standard]?.blurb ?? STANDARDS.purple.blurb)
 </script>
 
 <template>
@@ -23,7 +25,7 @@ const items = Object.values(STANDARDS)
       </button>
     </div>
     <div class="mt-1 text-[10px] text-ink-700 leading-snug">
-      {{ STANDARDS[state.standard].blurb }}
+      {{ standardBlurb }}
     </div>
   </div>
 </template>

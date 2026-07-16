@@ -4,9 +4,10 @@ import { useApp } from '../lib/state.js'
 import { sampleInPolygonWithHoles } from '../lib/sample.js'
 import { rebuildVertices } from '../lib/shapes.js'
 import { distanceToMeters, distanceUnitLabel, metersToDisplay } from '../lib/units.js'
+import { HUMAN_TOP_WIDTH_M } from '../lib/humanScale.js'
 
 const {
-  state, getSelectedZone, addZone, addObstruction, enterMode,
+  state, getSelectedZone, addZone, addObstruction, enterMode, finishRuler,
 } = useApp()
 const selectedZone = computed(() => getSelectedZone())
 const canvasCursor = computed(() =>
@@ -16,7 +17,7 @@ const canvasCursor = computed(() =>
 const distanceInput = ref('10')
 const distanceInputEl = ref(null)
 
-const PERSON_WIDTH_METERS = 0.6
+const PERSON_WIDTH_METERS = HUMAN_TOP_WIDTH_M
 let peopleCache = new Map()
 
 function confirmDistance() {
@@ -201,12 +202,12 @@ function addRingToPath(path, verts, closeLast = true) {
 }
 
 function drawRuler() {
-  if (!state.ruler.active) return
+  if (!state.ruler.active && state.ruler.points.length === 0) return
   ctx.strokeStyle = '#0284c7'
   ctx.lineWidth = 2
   ctx.setLineDash([4, 3])
   const pts = [...state.ruler.points]
-  if (state.ruler.cursor && pts.length > 0) pts.push(state.ruler.cursor)
+  if (state.ruler.active && state.ruler.cursor && pts.length > 0) pts.push(state.ruler.cursor)
   if (pts.length >= 2) {
     ctx.beginPath()
     const [x0, y0] = imageToScreen(pts[0])
@@ -270,7 +271,7 @@ function drawPeople() {
   if (!ppm) return
   ensurePeopleSampled()
   const personImageW = PERSON_WIDTH_METERS * ppm
-  const screenW = Math.max(2, personImageW * viewport.scale)
+  const screenW = personImageW * viewport.scale
   const screenH = screenW * 0.55
   const headR = screenW * 0.22
   for (const z of state.zones) {
@@ -375,15 +376,8 @@ function onMouseDown(e) {
     return
   }
 
-  // 4. Handle drag
-  const hit = findHandleAt(x, y)
-  if (hit) {
-    dragging = hit
-    state.selectedZoneId = hit.zoneId
-    return
-  }
-
-  // 5. Drawing
+  // 4. Drawing takes priority over handles. Draft circle/rectangle handles
+  // sit exactly under the second click, so handle drag must not steal it.
   if (state.drawing === 'obstruction') {
     const z = selectedZone.value
     if (!z) return
@@ -406,7 +400,7 @@ function onMouseDown(e) {
         const ppm = state.indoor.pixelsPerMeter || 1
         z.params.radiusM = Math.sqrt(dx * dx + dy * dy) / ppm
         rebuildVertices(z, { mode: state.mode, pixelsPerMeter: ppm })
-        state.drawing = false
+        enterMode(null)
       }
     } else if (z.shape === 'rect') {
       if (!z.params) {
@@ -414,9 +408,17 @@ function onMouseDown(e) {
       } else {
         z.params.b = ip
         rebuildVertices(z, { mode: state.mode, pixelsPerMeter: state.indoor.pixelsPerMeter })
-        state.drawing = false
+        enterMode(null)
       }
     }
+  }
+
+  // 5. Handle drag
+  const hit = findHandleAt(x, y)
+  if (hit) {
+    dragging = hit
+    state.selectedZoneId = hit.zoneId
+    return
   }
 }
 
@@ -495,7 +497,7 @@ function onContextMenu(e) {
 function onDblClick(e) {
   if (state.ruler.active) {
     e.preventDefault()
-    state.ruler.cursor = null
+    finishRuler()
   }
 }
 
@@ -573,8 +575,8 @@ function onShapePick(shape) {
                 :class="state.ruler.active ? 'bg-sky-600 text-white border-sky-700' : !state.indoor.pixelsPerMeter ? 'bg-white text-ink-200 border-ink-100 cursor-not-allowed' : 'bg-white text-ink-900 border-ink-100 hover:bg-ink-50'"
                 :disabled="!state.indoor.pixelsPerMeter"
                 :title="!state.indoor.pixelsPerMeter ? 'Calibrate scale first' : 'Measure distance'"
-                @click="state.ruler.active ? enterMode(null) : startRuler()">
-          📏 {{ state.ruler.active ? 'Ruler on' : 'Ruler' }}
+                @click="state.ruler.active ? finishRuler() : startRuler()">
+          {{ state.ruler.active ? 'Ruler on' : 'Ruler' }}
         </button>
       </div>
       <!-- Shape pill — only while drawing a zone -->

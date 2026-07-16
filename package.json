@@ -1,16 +1,19 @@
 {
   "name": "crowd-count",
-  "version": "1.5.0",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build && node -e \"require('fs').copyFileSync('dist/index.html','dist/crowd-count.html')\"",
-    "preview": "vite preview --port 4173"
+    "preview": "vite preview --port 4173",
+    "validate:gradient": "node scripts/validate-gradient.mjs"
   },
   "dependencies": {
     "@turf/area": "^7.1.0",
     "@turf/helpers": "^7.1.0",
+    "3d-tiles-renderer": "^0.4.28",
+    "earcut": "^3.2.3",
     "fflate": "^0.8.2",
     "js-base64": "^3.7.7",
     "maplibre-gl": "^4.7.1",

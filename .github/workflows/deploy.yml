@@ -25,6 +25,21 @@ jobs:
           cache: 'npm'
       - run: npm ci
       - run: npm run build
+      # The six animated crowd GLBs (~430 MB combined; two exceed GitHub's
+      # 100 MB per-file limit) live as v2.0.0 release assets, not in git.
+      # Stage them into the Pages site so the app can load them same-origin.
+      # Non-fatal: if the release or assets are missing, the site still
+      # deploys and the app shows a friendly error in Animated mode.
+      - name: Stage animated crowd models from release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p dist/crowd-models
+          gh release download v2.0.0 \
+            --repo "$GITHUB_REPOSITORY" \
+            --pattern 'dynamic_crowd_export_loop_1000_3x3x*.glb' \
+            --dir dist/crowd-models \
+            || echo "::warning::Animated crowd models not staged (release v2.0.0 or its GLB assets not found)"
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

@@ -1,14 +1,10 @@
 // Rejection-sample points uniformly inside a polygon, optionally excluding
 // any number of "hole" rings (obstructions). Used to scatter "person" symbols
-// inside outdoor / indoor zones. The displayed dot count is capped to
-// MAX_DOTS_PER_ZONE so rendering stays smooth; the actual headcount in the
-// result bar is not affected by the cap.
-
-// Cap per zone. MapLibre's symbol layer renders smoothly up to ~20k icons; past
-// that the layer can silently stop drawing at high zoom. 15k is the proven sweet
-// spot — at any plausible polygon size the jittered-grid spacing is small enough
-// that 0.6 m people overlap and read as a packed crowd.
-export const MAX_DOTS_PER_ZONE = 15000
+// inside outdoor / indoor zones. Every sampled person is rendered (no visual
+// cap) so the crowd shows the true density; only a high SAFETY CEILING bounds
+// the count to stop a pathologically huge zone (km² × crush) from generating
+// millions of features and freezing the browser.
+export const MAX_DOTS_PER_ZONE = 200000
 
 export function pointInPolygon([px, py], verts) {
   let inside = false
@@ -50,45 +46,102 @@ export function sampleInPolygonWithHoles(outerVerts, holesVerts, target) {
   const W = maxX - minX, H = maxY - minY
   if (W <= 0 || H <= 0) return []
 
-  // Over-allocate cells by 1/0.8 for the outer ring shape, then further inflate
-  // by outer/net so holes don't blow our iteration budget.
+  // Estimate the net polygon's fill ratio inside its bounding box. This lets
+  // circles, concave shapes, and zones with holes still produce the requested
+  // number of visible people instead of quietly under-filling.
   const outerA = ringArea(outerVerts) || 1
   let netA = outerA
   if (holesVerts?.length) for (const h of holesVerts) if (h?.length >= 3) netA -= ringArea(h)
-  netA = Math.max(netA, outerA * 0.05)  // floor so we don't go infinite if a hole dominates
-  const inflate = outerA / netA
+  if (netA <= 0) return []
+  const bboxA = W * H
+  const fillRatio = Math.max(0.001, Math.min(1, netA / bboxA))
 
-  const targetCells = (N / 0.8) * inflate
+  const targetCells = N * 1.25 / fillRatio
   const aspect = W / H
   const ncols = Math.max(1, Math.round(Math.sqrt(targetCells * aspect)))
   const nrows = Math.max(1, Math.round(Math.sqrt(targetCells / aspect)))
   const cellW = W / ncols, cellH = H / nrows
   const jitter = 0.3
 
-  // Shuffle cell indices so the kept points spread evenly when we hit the cap.
-  const indices = new Array(ncols * nrows)
-  for (let i = 0; i < ncols * nrows; i++) indices[i] = i
-  for (let k = indices.length - 1; k > 0; k--) {
-    const r = (Math.random() * (k + 1)) | 0
-    const tmp = indices[k]; indices[k] = indices[r]; indices[r] = tmp
-  }
-
   const holes = (holesVerts ?? []).filter(h => h && h.length >= 3)
 
   const out = []
-  outer: for (const idx of indices) {
-    const i = (idx / ncols) | 0
-    const j = idx - i * ncols
-    const jx = (Math.random() - 0.5) * cellW * jitter
-    const jy = (Math.random() - 0.5) * cellH * jitter
-    const x = minX + (j + 0.5) * cellW + jx
-    const y = minY + (i + 0.5) * cellH + jy
-    if (!pointInPolygon([x, y], outerVerts)) continue
-    for (const h of holes) if (pointInPolygon([x, y], h)) continue outer
-    out.push([x, y])
-    if (out.length >= N) return out
+  let seen = 0
+  function pointInAnyHole(p) {
+    for (const h of holes) if (pointInPolygon(p, h)) return true
+    return false
+  }
+  function keepPoint(p) {
+    seen++
+    if (out.length < N) {
+      out.push(p)
+      return
+    }
+    const r = (Math.random() * seen) | 0
+    if (r < N) out[r] = p
+  }
+
+  for (let i = 0; i < nrows; i++) {
+    for (let j = 0; j < ncols; j++) {
+      const jx = (Math.random() - 0.5) * cellW * jitter
+      const jy = (Math.random() - 0.5) * cellH * jitter
+      const p = [minX + (j + 0.5) * cellW + jx, minY + (i + 0.5) * cellH + jy]
+      if (!pointInPolygon(p, outerVerts) || pointInAnyHole(p)) continue
+      keepPoint(p)
+    }
+  }
+
+  // Pathological skinny or highly concave zones can still beat the grid
+  // estimate. Top up with bounded rejection sampling so the visual count
+  // matches the density target for ordinary cases.
+  let tries = 0
+  const maxTries = Math.max(2000, N * 20)
+  randomFill: while (out.length < N && tries < maxTries) {
+    tries++
+    const p = [minX + Math.random() * W, minY + Math.random() * H]
+    if (!pointInPolygon(p, outerVerts) || pointInAnyHole(p)) continue randomFill
+    out.push(p)
   }
   return out
+}
+
+// Weighted rejection sampler. `weightFn(point)` returns a local density-like
+// weight; points in higher-weight areas are more likely to be accepted.
+export function sampleWeightedInPolygonWithHoles(outerVerts, holesVerts, target, weightFn, maxWeight) {
+  if (!outerVerts || outerVerts.length < 3 || target <= 0 || !weightFn || maxWeight <= 0) return []
+  const N = Math.min(Math.max(1, Math.round(target)), MAX_DOTS_PER_ZONE)
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
+  for (const [x, y] of outerVerts) {
+    if (x < minX) minX = x; if (x > maxX) maxX = x
+    if (y < minY) minY = y; if (y > maxY) maxY = y
+  }
+  const W = maxX - minX, H = maxY - minY
+  if (W <= 0 || H <= 0) return []
+
+  const holes = (holesVerts ?? []).filter(h => h && h.length >= 3)
+  function pointInAnyHole(p) {
+    for (const h of holes) if (pointInPolygon(p, h)) return true
+    return false
+  }
+
+  const out = []
+  let tries = 0
+  const maxTries = Math.max(5000, N * 80)
+  while (out.length < N && tries < maxTries) {
+    tries++
+    const p = [minX + Math.random() * W, minY + Math.random() * H]
+    if (!pointInPolygon(p, outerVerts) || pointInAnyHole(p)) continue
+    const w = Math.max(0, Number(weightFn(p)) || 0)
+    if (Math.random() <= Math.min(1, w / maxWeight)) out.push(p)
+  }
+
+  // If the weighted rejection loop cannot fill a very awkward polygon in
+  // time, top up uniformly so the count remains honest.
+  if (out.length < N) {
+    const topUp = sampleInPolygonWithHoles(outerVerts, holesVerts, N - out.length)
+    out.push(...topUp)
+  }
+  return out.slice(0, N)
 }
 
 // Backwards-compat alias for any consumer that doesn't yet know about holes.

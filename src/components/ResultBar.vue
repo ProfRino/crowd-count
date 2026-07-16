@@ -21,7 +21,7 @@ async function copyShare() {
 </script>
 
 <template>
-  <div class="bg-white/95 rounded-lg shadow-xl border border-ink-100 px-4 py-2.5 flex items-center gap-5">
+  <div class="bg-white/95 rounded-lg shadow-xl border border-ink-100 px-3 sm:px-4 py-2.5 flex flex-wrap items-center justify-center gap-3 sm:gap-5 max-w-[calc(100vw-1rem)]">
     <div>
       <div class="text-[10px] uppercase tracking-wide text-ink-700">Total area</div>
       <div class="text-sm font-semibold tabular-nums">{{ fmtArea(totals.area) }}</div>
