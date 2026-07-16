@@ -19,6 +19,17 @@ body {
   font-size: 10px;
 }
 
+/* MapLibre defaults to cursor: grab / grabbing, but Windows has no native
+   grab-hand cursor — Chrome substitutes a low-res bitmap that turns black and
+   pixelated on scaled high-DPI screens. Stick to native OS cursors instead. */
+.maplibregl-map .maplibregl-canvas-container.maplibregl-interactive {
+  cursor: default;
+}
+
+.maplibregl-map .maplibregl-canvas-container.maplibregl-interactive:active {
+  cursor: move;
+}
+
 .maplibregl-canvas {
   outline: none;
 }
@@ -30,11 +41,7 @@ body {
   border-radius: 9999px;
   background: #fff;
   border: 2px solid currentColor;
-  cursor: grab;
-}
-
-.zone-vertex:active {
-  cursor: grabbing;
+  cursor: move;
 }
 
 /* Density slider: report style. The track stays grey; the thumb carries the status colour. */

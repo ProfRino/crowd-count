@@ -1922,7 +1922,7 @@ function onPointerDown(e) {
   dragMode = wantsPointerZoom(e) ? 'zoom' : wantsPointerPan(e) ? 'pan' : 'orbit'
   lastPointer = { x: e.clientX, y: e.clientY }
   panGrabPoint = dragMode === 'pan' ? pointerOnTargetPlane(e) : null
-  canvasRef.value.style.cursor = dragMode === 'zoom' ? 'ns-resize' : 'grabbing'
+  canvasRef.value.style.cursor = dragMode === 'zoom' ? 'ns-resize' : 'move'
   canvasRef.value.setPointerCapture(e.pointerId)
 }
 function onPointerMove(e) {

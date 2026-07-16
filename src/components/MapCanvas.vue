@@ -797,7 +797,7 @@ onMounted(() => {
         vertexIdx: p.vertexIdx ?? null,
         cornerIdx: p.cornerIdx ?? null,
       }
-      map.getCanvas().style.cursor = 'grabbing'
+      map.getCanvas().style.cursor = 'move'
       map.dragPan.disable()
     }
     map.on('mousedown', 'handles', startHandleDrag)
@@ -808,7 +808,7 @@ onMounted(() => {
       const p = e.features[0].properties
       dragging = { kind: 'facing', zoneId: p.zoneId }
       state.selectedZoneId = p.zoneId
-      map.getCanvas().style.cursor = 'grabbing'
+      map.getCanvas().style.cursor = 'move'
       map.dragPan.disable()
     })
     map.on('touchstart', 'facing-markers', (e) => {
@@ -817,7 +817,7 @@ onMounted(() => {
       const p = e.features[0].properties
       dragging = { kind: 'facing', zoneId: p.zoneId }
       state.selectedZoneId = p.zoneId
-      map.getCanvas().style.cursor = 'grabbing'
+      map.getCanvas().style.cursor = 'move'
       map.dragPan.disable()
     })
     function startGradientDrag(e) {
@@ -829,7 +829,7 @@ onMounted(() => {
       e.preventDefault()
       dragging = { kind: `gradient-${p.kind}`, zoneId: p.zoneId }
       state.selectedZoneId = p.zoneId
-      map.getCanvas().style.cursor = 'grabbing'
+      map.getCanvas().style.cursor = 'move'
       map.dragPan.disable()
     }
     map.on('mousedown', 'gradient-markers', startGradientDrag)
@@ -955,11 +955,11 @@ onMounted(() => {
     const defaultCursor = () => (state.drawing || state.ruler.active || state.aiming || state.gradientPicking) ? 'crosshair' : ''
     map.on('mouseenter', 'handles', (e) => {
       const p = e.features?.[0]?.properties
-      if (p && canDragHandleFeature(p)) map.getCanvas().style.cursor = 'grab'
+      if (p && canDragHandleFeature(p)) map.getCanvas().style.cursor = 'move'
     })
     map.on('mouseleave', 'handles', () => { if (!dragging) map.getCanvas().style.cursor = defaultCursor() })
     map.on('mouseenter', 'facing-markers', () => {
-      if (!state.drawing && !state.ruler.active) map.getCanvas().style.cursor = 'grab'
+      if (!state.drawing && !state.ruler.active) map.getCanvas().style.cursor = 'move'
     })
     map.on('mouseleave', 'facing-markers', () => { if (!dragging) map.getCanvas().style.cursor = defaultCursor() })
     map.on('mouseenter', 'gradient-markers', (e) => {
@@ -967,7 +967,7 @@ onMounted(() => {
       const pickingThisGradient = state.gradientPicking?.zoneId === p?.zoneId
       const canDragDuringPick = pickingThisGradient && state.gradientPicking.step === 'confirm'
       if (!state.drawing && !state.ruler.active && (!state.gradientPicking || canDragDuringPick)) {
-        map.getCanvas().style.cursor = 'grab'
+        map.getCanvas().style.cursor = 'move'
       }
     })
     map.on('mouseleave', 'gradient-markers', () => { if (!dragging) map.getCanvas().style.cursor = defaultCursor() })
