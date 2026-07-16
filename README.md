@@ -46,38 +46,33 @@ or any CDN.
   navigation, grayscale and colour display modes, and looping cinematic
   camera moves (Orbit, Flyover, Sweep, Push, Drone, Skim). Press `H` for a
   crowd wave.
-* **Google Photorealistic 3D Tiles.** Optional photorealistic terrain and
-  buildings in the 3D view via the Google Maps Platform, with terrain-height
-  sampling so the crowd stands on the real ground. The API key is stored only
-  in the browser's localStorage — never in project files or share links.
 * **Density gradients.** Each zone can be uniform or a linear gradient
   between two densities along a draggable direction. Totals use exact
   integration over the real zone geometry (minus obstructions); safety
   warnings use the peak density.
-* **Multi-zone management.** Name, colour, and a density slider per zone —
-  with [Keith Still](https://www.gkstill.com)'s reference tick marks and
-  standard-specific threshold markers. Editing one zone does not reshuffle
+* **Multi-zone management.** Name, colour, and a density slider per zone. Editing one zone does not reshuffle
   the others; sampled person positions are cached per zone.
 * **Crowd appearance.** Neutral, by-zone, or natural-mix people colours with
   separate head, torso and leg tones; random orientation or **Aim crowd** to
   face everyone in a zone towards a draggable point.
-* **3D density reference.** Side-by-side 3 m × 3 m reference patches for 1–6
-  people/m², as procedurally generated mannequins or animated crowd models
-  (streamed from this project's GitHub release).
 * **Codified safety thresholds.** Per-zone pass / approaching / over-limit
   badge against any of:
   * **UK Purple Guide** — 2.0 ppl/m² planning ceiling for outdoor mixed-audience events
   * **UK Green Guide** (standing terrace) — 4.7 ppl/m²
   * **NFPA 101** standing assembly — 5 net sq ft per person = 2.15 ppl/m²
   * **Still upper safe limit** — 5.0 ppl/m²
+* **Google Photorealistic 3D Tiles.** Optional photorealistic terrain and
+  buildings in the 3D view via the Google Maps Platform, with terrain-height
+  sampling so the crowd stands on the real ground. The API key is stored only
+  in the browser's localStorage — never in project files or share links.
 * **Crowd visualisation.** Top-down head-on-shoulders person symbols rendered
   at real-world scale via a jittered-grid sampler — now up to **200,000
   rendered people per zone**, with improved sampling for circles, concave
   polygons, and polygons with holes. Symbols stay at consistent geographic
   size as you zoom.
-* **Crush regime warning.** Densities above 5.0 ppl/m² trigger a red callout
-  explaining that the linear area × density model is no longer a safe-headcount
-  estimate but a crowd-dynamics question.
+* **3D density reference.** Side-by-side 3 m × 3 m reference patches for 1–6
+  people/m², as procedurally generated mannequins or animated crowd models
+  (streamed from this project's GitHub release).
 * **Ruler.** Multi-point measuring with confirmed distance, live preview to
   the cursor, projected total, and explicit Done / Clear actions.
 * **Metric / imperial toggle** for the scale bar, area display, and indoor
