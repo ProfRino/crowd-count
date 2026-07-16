@@ -40,10 +40,10 @@ or any CDN.
 * **Indoor mode.** Upload any JPG/PNG floor plan, click two points, enter a
   known real-world distance, and the image becomes a calibrated drawing
   surface in true m² (or ft²).
-* **Density gradients.** Each zone can be uniform or a linear gradient
-  between two densities along a draggable direction. Totals use exact
-  integration over the real zone geometry (minus obstructions); safety
-  warnings use the peak density.
+* **Density gradients.** Each zone can be uniform or a piecewise-linear
+  gradient through any number of distance/density points along a draggable
+  direction. Totals use exact integration over the real zone geometry
+  (minus obstructions); safety warnings use the peak density.
 * **Multi-zone management.** Name, colour, and a density slider per zone. Editing one zone does not reshuffle
   the others; sampled person positions are cached per zone.
 * **Crowd appearance.** Neutral, by-zone, or natural-mix people colours with

@@ -122,6 +122,49 @@ const clamped = gradientZone({
 })
 check('density clamps before 0 m and after 100 m', app.zonePeopleCount(clamped), 15000)
 
+// Multi-stop profiles: piecewise linear between consecutive stops.
+// 0-50 m ramps 2 -> 4 (avg 3), 50-100 m ramps 4 -> 1 (avg 2.5):
+// average = (3 * 50 + 2.5 * 50) / 100 = 2.75 over 5000 m².
+const threeStops = gradientZone({
+  id: 'three-stops',
+  vertices: [[0, 0], [100, 0], [100, 50], [0, 50]],
+  stops: [
+    { distanceM: 0, density: 2 },
+    { distanceM: 50, density: 4 },
+    { distanceM: 100, density: 1 },
+  ],
+})
+check('three-stop piecewise gradient', app.zonePeopleCount(threeStops), 13750)
+
+// Multi-stop with clamping outside the stop range:
+// 0-20 m constant 3, 20-50 m ramps 3 -> 1 (avg 2), 50-80 m ramps 1 -> 2
+// (avg 1.5), 80-100 m constant 2. Integral per metre of width:
+// 20*3 + 30*2 + 30*1.5 + 20*2 = 205, times 50 m width = 10250 people.
+const multiClamped = gradientZone({
+  id: 'multi-clamped',
+  vertices: [[0, 0], [100, 0], [100, 50], [0, 50]],
+  stops: [
+    { distanceM: 20, density: 3 },
+    { distanceM: 50, density: 1 },
+    { distanceM: 80, density: 2 },
+  ],
+})
+check('multi-stop gradient with clamping', app.zonePeopleCount(multiClamped), 10250)
+
+// Duplicate distances form a step: 0-50 m constant 2, then 50-100 m
+// constant 4 — the zero-width segment contributes nothing.
+const stepProfile = gradientZone({
+  id: 'step-profile',
+  vertices: [[0, 0], [100, 0], [100, 50], [0, 50]],
+  stops: [
+    { distanceM: 0, density: 2 },
+    { distanceM: 50, density: 2 },
+    { distanceM: 50, density: 4 },
+    { distanceM: 100, density: 4 },
+  ],
+})
+check('step profile via duplicate stop distances', app.zonePeopleCount(stepProfile), 15000)
+
 const angle = Math.PI / 4
 const rotated = gradientZone({
   id: 'rotated',

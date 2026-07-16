@@ -22,7 +22,7 @@ const emit = defineEmits(['close'])
         <ul class="list-disc pl-5 space-y-1 text-ink-900 text-xs">
           <li>Outdoor map and indoor floor-plan workflows with polygon, rectangle, and circle zones.</li>
           <li>Obstructions, multiple zones, metric/imperial units, a multi-segment ruler, save/open, and share links.</li>
-          <li>Uniform density or a two-point linear density gradient with a movable direction axis.</li>
+          <li>Uniform density or a multi-point density gradient (piecewise linear) with a movable direction axis.</li>
           <li>Density guidance from the Purple Guide, Green Guide, NFPA 101, and Keith Still.</li>
           <li>2D people, 3D site visualisation, crowd colour/orientation controls, and aim points.</li>
           <li>Simple and animated 3 x 3 m density references for 1-6 people/m².</li>

@@ -144,7 +144,9 @@ function defaultGradient() {
   }
 }
 
-function twoGradientStops(stops, baseDensity = 2) {
+// Clamp, sort and pad — any number of stops >= 2 is kept (piecewise-linear
+// profile). Older builds reading a multi-stop link truncate it to first/last.
+function normalizeGradientStops(stops, baseDensity = 2) {
   const normalized = Array.isArray(stops)
     ? stops
       .map(s => ({
@@ -153,7 +155,7 @@ function twoGradientStops(stops, baseDensity = 2) {
       }))
       .sort((a, b) => a.distanceM - b.distanceM)
     : []
-  if (normalized.length >= 2) return [normalized[0], normalized[normalized.length - 1]]
+  if (normalized.length >= 2) return normalized
   if (normalized.length === 1) {
     return [
       normalized[0],
@@ -170,7 +172,7 @@ function hasGradient(z) {
 function gradientToWire(z) {
   if (!hasGradient(z)) return null
   const g = z.densityGradient ?? defaultGradient(z.density)
-  const stops = twoGradientStops(g.stops, z.density)
+  const stops = normalizeGradientStops(g.stops, z.density)
   return [
     Array.isArray(g.start) ? roundPt(g.start) : null,
     Array.isArray(g.end) ? roundPt(g.end) : null,
@@ -182,7 +184,7 @@ function gradientFromWire(wire, baseDensity) {
   if (!wire) return defaultGradient(baseDensity)
   const [start, end, stops] = wire
   const normalizedStops = Array.isArray(stops) && stops.length
-    ? twoGradientStops(stops.map(([distanceM, density]) => ({
+    ? normalizeGradientStops(stops.map(([distanceM, density]) => ({
       distanceM: Math.max(0, Number(distanceM) || 0),
       density: Math.max(0, Number(density) || 0),
     })), baseDensity)
@@ -282,7 +284,7 @@ export function loadProject(jsonString) {
 function gradientFromProject(g, baseDensity) {
   if (!g) return defaultGradient(baseDensity)
   const stops = Array.isArray(g.stops) && g.stops.length
-    ? twoGradientStops(g.stops.map(s => ({
+    ? normalizeGradientStops(g.stops.map(s => ({
       distanceM: Math.max(0, Number(s.distanceM) || 0),
       density: Math.max(0, Number(s.density) || 0),
     })), baseDensity)

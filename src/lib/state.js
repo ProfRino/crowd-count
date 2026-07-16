@@ -285,7 +285,9 @@ function defaultDensityGradient() {
   }
 }
 
-function twoGradientStops(stops, baseDensity = 2) {
+// Clamp, sort and pad the stop list. Any number of stops >= 2 is kept —
+// the density profile is piecewise linear between consecutive stops.
+function normalizeGradientStops(stops, baseDensity = 2) {
   const normalized = Array.isArray(stops)
     ? stops
       .map(s => ({
@@ -294,7 +296,7 @@ function twoGradientStops(stops, baseDensity = 2) {
       }))
       .sort((a, b) => a.distanceM - b.distanceM)
     : []
-  if (normalized.length >= 2) return [normalized[0], normalized[normalized.length - 1]]
+  if (normalized.length >= 2) return normalized
   if (normalized.length === 1) {
     return [
       normalized[0],
@@ -316,7 +318,7 @@ function ensureDensityModel(z) {
   if (!z) return null
   if (z.densityMode !== 'gradient') z.densityMode = 'uniform'
   if (!z.densityGradient) z.densityGradient = defaultDensityGradient(z.density)
-  const stops = twoGradientStops(z.densityGradient.stops, z.density)
+  const stops = normalizeGradientStops(z.densityGradient.stops, z.density)
   if (!gradientStopsEqual(z.densityGradient.stops, stops)) {
     z.densityGradient.stops = stops
   }
@@ -325,7 +327,7 @@ function ensureDensityModel(z) {
 
 function gradientStops(z) {
   ensureDensityModel(z)
-  return twoGradientStops(z.densityGradient?.stops, z.density)
+  return normalizeGradientStops(z.densityGradient?.stops, z.density)
 }
 
 function maxGradientDensity(z) {
@@ -474,9 +476,6 @@ function exactGradientAverageDensity(z) {
   const stops = gradientStops(z)
   const first = stops[0]
   const last = stops[stops.length - 1]
-  const span = last.distanceM - first.distanceM
-  const slope = span > 1e-9 ? (last.density - first.density) / span : 0
-  const intercept = first.density - slope * first.distanceM
   let totalArea = 0
   let densityIntegral = 0
 
@@ -489,17 +488,26 @@ function exactGradientAverageDensity(z) {
     const whole = polygonAreaAndGradientMoment(triangle)
     totalArea += whole.area
 
+    // Constant density before the first stop and after the last one.
     const low = polygonAreaAndGradientMoment(clipGradientPolygon(triangle, first.distanceM, false))
     densityIntegral += low.area * first.density
 
-    if (span > 1e-9) {
-      const middlePoly = clipGradientPolygon(
-        clipGradientPolygon(triangle, first.distanceM, true),
-        last.distanceM,
+    // Piecewise-linear segments between consecutive stops: clip the triangle
+    // to each [a, b] distance band and integrate that band's linear ramp.
+    for (let k = 1; k < stops.length; k += 1) {
+      const a = stops[k - 1]
+      const b = stops[k]
+      const span = b.distanceM - a.distanceM
+      if (span <= 1e-9) continue
+      const slope = (b.density - a.density) / span
+      const intercept = a.density - slope * a.distanceM
+      const bandPoly = clipGradientPolygon(
+        clipGradientPolygon(triangle, a.distanceM, true),
+        b.distanceM,
         false,
       )
-      const middle = polygonAreaAndGradientMoment(middlePoly)
-      densityIntegral += middle.area * intercept + middle.moment * slope
+      const band = polygonAreaAndGradientMoment(bandPoly)
+      densityIntegral += band.area * intercept + band.moment * slope
     }
 
     const high = polygonAreaAndGradientMoment(clipGradientPolygon(triangle, last.distanceM, true))

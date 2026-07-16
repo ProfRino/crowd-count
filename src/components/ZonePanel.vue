@@ -125,7 +125,7 @@ function ensureGradient(z) {
       .sort((a, b) => a.distanceM - b.distanceM)
     : []
   let nextStops
-  if (stops.length >= 2) nextStops = [stops[0], stops[stops.length - 1]]
+  if (stops.length >= 2) nextStops = stops
   else if (stops.length === 1) {
     nextStops = [
       stops[0],
@@ -153,6 +153,34 @@ function setDensityMode(z, mode) {
 function sortedStops(z) {
   ensureGradient(z)
   return z.densityGradient.stops
+}
+function stopLabel(z, i) {
+  const n = z.densityGradient.stops.length
+  return i === 0 ? 'start m' : i === n - 1 ? 'end m' : 'point m'
+}
+// Insert a new stop in the middle of the widest gap, with the density the
+// profile already has there — adding a point never changes the count until
+// the user edits it.
+function addGradientStop(z) {
+  ensureGradient(z)
+  const stops = z.densityGradient.stops
+  let gapIndex = 0
+  let gapSpan = -1
+  for (let i = 1; i < stops.length; i += 1) {
+    const span = stops[i].distanceM - stops[i - 1].distanceM
+    if (span > gapSpan) { gapSpan = span; gapIndex = i }
+  }
+  const a = stops[gapIndex - 1]
+  const b = stops[gapIndex]
+  const distanceM = Math.round((a.distanceM + b.distanceM) / 2)
+  const t = gapSpan > 1e-9 ? (distanceM - a.distanceM) / gapSpan : 0.5
+  const density = Math.round((a.density + (b.density - a.density) * t) * 100) / 100
+  stops.splice(gapIndex, 0, { distanceM, density })
+}
+function removeGradientStop(z, i) {
+  ensureGradient(z)
+  if (z.densityGradient.stops.length <= 2) return
+  z.densityGradient.stops.splice(i, 1)
 }
 function onPickGradient(z) {
   ensureGradient(z)
@@ -327,9 +355,11 @@ function standardLimitLabel(z) {
               {{ gradientStatus(z) }}
             </div>
             <div class="mt-2 space-y-1">
-              <div v-for="(stop, i) in sortedStops(z)" :key="i" class="grid grid-cols-2 items-center gap-1">
+              <div v-for="(stop, i) in sortedStops(z)" :key="i"
+                   class="grid items-center gap-1"
+                   :class="sortedStops(z).length > 2 ? 'grid-cols-[1fr_1fr_auto]' : 'grid-cols-2'">
                 <label class="text-[10px] text-ink-700">
-                  {{ i === 0 ? 'start m' : 'end m' }}
+                  {{ stopLabel(z, i) }}
                   <input v-model.number="stop.distanceM"
                          type="number"
                          min="0"
@@ -347,7 +377,16 @@ function standardLimitLabel(z) {
                          class="mt-0.5 h-7 w-full rounded border border-ink-100 px-1 text-xs"
                          @click.stop />
                 </label>
+                <button v-if="sortedStops(z).length > 2"
+                        class="mt-3.5 px-1 text-ink-700 hover:text-red-600 text-[11px]"
+                        title="Remove this density point"
+                        @click.stop="removeGradientStop(z, i)">✕</button>
               </div>
+              <button class="text-[11px] text-sky-700 hover:underline"
+                      title="Insert a density point between the existing ones"
+                      @click.stop="addGradientStop(z)">
+                + Add density point
+              </button>
             </div>
           </div>
 
