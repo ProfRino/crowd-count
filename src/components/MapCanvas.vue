@@ -530,6 +530,8 @@ async function ensureGoogleLayer(basemapKey) {
     // beneath everything else.
     const beforeId = map.getLayer('zones-fill') ? 'zones-fill' : undefined
     map.addLayer({ id: layerId, type: 'raster', source: sourceId, layout: { visibility: 'none' } }, beforeId)
+    // Lazily-added layers must pick up the current grayscale setting.
+    applyTileStyle()
   }
   googleLayersAdded[basemapKey] = true
 }
@@ -573,6 +575,26 @@ function applyBasemap() {
       state.basemap = 'osm'
       map.setLayoutProperty('osm-tiles', 'visibility', 'visible')
     })
+  }
+}
+
+// Grayscale toggle. Desaturate the raster tile layers via paint properties so
+// zones, people and handles keep their colours — a CSS filter on the container
+// would grey the whole WebGL canvas. Mirrors the 3D view's tile filter
+// (grayscale + slight contrast lift).
+function applyTileStyle() {
+  if (!map) return
+  if (!map.isStyleLoaded()) {
+    map.once('idle', applyTileStyle)
+    return
+  }
+  const grey = state.tileStyle === 'grayscale'
+  const ids = ['osm-tiles', 'sat-tiles',
+    ...Object.keys(BASEMAPS).filter(k => BASEMAPS[k].google).map(k => `tiles-${k}`)]
+  for (const id of ids) {
+    if (!map.getLayer(id)) continue
+    map.setPaintProperty(id, 'raster-saturation', grey ? -1 : 0)
+    map.setPaintProperty(id, 'raster-contrast', grey ? 0.05 : 0)
   }
 }
 
@@ -1063,6 +1085,7 @@ onMounted(() => {
     }, { immediate: true })
 
     applyBasemap()
+    applyTileStyle()
   })
 
   watch(() => state.zones, () => { if (map) { refreshSources(); schedulePeopleRefresh() } }, { deep: true })
@@ -1079,6 +1102,7 @@ onMounted(() => {
   // Gradient setup also suppresses the selected zone until Enter commits it.
   watch(() => state.gradientPicking, () => { if (map) { refreshSources(); schedulePeopleRefresh() } })
   watch(() => state.basemap, () => { if (map) applyBasemap() })
+  watch(() => state.tileStyle, () => { if (map) applyTileStyle() })
   watch(() => state.ruler, () => { if (map) refreshRulerSources() }, { deep: true })
   watch(() => state.peopleColorMode, () => refreshPeopleRendering())
 })
@@ -1145,7 +1169,7 @@ defineExpose({ fly })
 </script>
 
 <template>
-  <div class="absolute inset-0" :class="{ 'tile-grayscale': state.tileStyle === 'grayscale' }">
+  <div class="absolute inset-0">
     <div ref="container" class="w-full h-full" />
     <canvas ref="peopleCanvas" class="absolute inset-0 hidden pointer-events-none" />
   </div>
