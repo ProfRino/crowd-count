@@ -40,12 +40,6 @@ or any CDN.
 * **Indoor mode.** Upload any JPG/PNG floor plan, click two points, enter a
   known real-world distance, and the image becomes a calibrated drawing
   surface in true m² (or ft²).
-* **Full 3D site view.** Switch the whole site into 3D: instanced crowd
-  rendering built for very large crowds, 3D zones and obstructions,
-  synchronized 2D/3D switching, orbit/pan/zoom mouse controls, WASD keyboard
-  navigation, grayscale and colour display modes, and looping cinematic
-  camera moves (Orbit, Flyover, Sweep, Push, Drone, Skim). Press `H` for a
-  crowd wave.
 * **Density gradients.** Each zone can be uniform or a linear gradient
   between two densities along a draggable direction. Totals use exact
   integration over the real zone geometry (minus obstructions); safety
@@ -61,6 +55,12 @@ or any CDN.
   * **UK Green Guide** (standing terrace) — 4.7 ppl/m²
   * **NFPA 101** standing assembly — 5 net sq ft per person = 2.15 ppl/m²
   * **Still upper safe limit** — 5.0 ppl/m²
+* **Full 3D site view.** Switch the whole site into 3D: instanced crowd
+  rendering built for very large crowds, 3D zones and obstructions,
+  synchronized 2D/3D switching, orbit/pan/zoom mouse controls, WASD keyboard
+  navigation, grayscale and colour display modes, and looping cinematic
+  camera moves (Orbit, Flyover, Sweep, Push, Drone, Skim). Press `H` for a
+  crowd wave.
 * **Google Photorealistic 3D Tiles.** Optional photorealistic terrain and
   buildings in the 3D view via the Google Maps Platform, with terrain-height
   sampling so the crowd stands on the real ground. The API key is stored only
