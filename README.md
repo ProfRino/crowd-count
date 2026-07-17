@@ -117,9 +117,9 @@ fully offline.
 A short walk-through showing how to draw zones, set densities, and read the
 estimate:
 
-[![Watch the tutorial](https://img.youtube.com/vi/TPXZ6oP3dDE/hqdefault.jpg)](https://youtu.be/TPXZ6oP3dDE)
+[![Watch the tutorial](https://img.youtube.com/vi/x5br6jshsyM/hqdefault.jpg)](https://youtu.be/x5br6jshsyM)
 
-> **[Watch on YouTube — youtu.be/TPXZ6oP3dDE](https://youtu.be/TPXZ6oP3dDE)**
+> **[Watch on YouTube — youtu.be/x5br6jshsyM](https://youtu.be/x5br6jshsyM)**
 
 ## For developers
 

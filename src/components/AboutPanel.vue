@@ -89,7 +89,7 @@ const emit = defineEmits(['close'])
              style="padding-top: 56.25%">
           <iframe
             class="absolute inset-0 w-full h-full"
-            src="https://www.youtube-nocookie.com/embed/TPXZ6oP3dDE"
+            src="https://www.youtube-nocookie.com/embed/x5br6jshsyM"
             title="Crowd Count — tutorial"
             loading="lazy"
             referrerpolicy="strict-origin-when-cross-origin"
@@ -98,7 +98,7 @@ const emit = defineEmits(['close'])
         </div>
         <p class="text-[11px] text-ink-700 mt-1">
           Trouble loading?
-          <a class="underline" href="https://youtu.be/TPXZ6oP3dDE" target="_blank" rel="noopener">
+          <a class="underline" href="https://youtu.be/x5br6jshsyM" target="_blank" rel="noopener">
             Watch on YouTube
           </a>.
         </p>
