@@ -1,4 +1,4 @@
-# Crowd Count
+# Crowd Count (version 2)
 
 [![Latest release](https://img.shields.io/github/v/release/ProfRino/crowd-count?label=latest&color=blue)](https://github.com/ProfRino/crowd-count/releases/latest)
 [![License: MIT](https://img.shields.io/github/license/ProfRino/crowd-count?label=License&color=yellow)](LICENSE)
