@@ -28,14 +28,24 @@ installation, no backend, no Python environment, and no build step.
 
 ## Project team
 
-<a href="https://github.com/yingying930902">
-  <img src="https://github.com/yingying930902.png?size=90"
-       width="90"
-       alt="Yingying">
-</a>
-
-**[Yingying](https://github.com/yingying930902)**  
-Project collaborator
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/ProfRino">
+        <img src="https://github.com/ProfRino.png?size=100" width="100" alt="Prof Rino"><br>
+        <strong>Prof Rino</strong>
+      </a><br>
+      Project lead and developer
+    </td>
+    <td align="center">
+      <a href="https://github.com/yingying930902">
+        <img src="https://github.com/yingying930902.png?size=100" width="100" alt="Yingying"><br>
+        <strong>Yingying</strong>
+      </a><br>
+      Project collaborator
+    </td>
+  </tr>
+</table>
 
 ## Features
 
