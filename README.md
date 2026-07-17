@@ -17,7 +17,6 @@ installation, no backend, no Python environment, and no build step.
 
 ![Demo](demo/demo.gif)
 
-> **Project Lead:** Prof Rino Lovreglio, PhD — Massey University
 >
 > **Disclaimer:** No responsibility is taken for the use or output of this tool.
 > All results are *Fermi-style* order-of-magnitude estimates and must be
