@@ -101,6 +101,39 @@ let buildingsAbort = null    // AbortController for an in-flight Overpass fetch
 let tilesAbort = null        // AbortController for tile-image loads
 let tileFloor = null         // the Mesh holding the stitched OSM/satellite ground texture
 
+// --- Grayscale for Google 3D tiles ----------------------------------------
+// The 2D tile floor desaturates via a canvas filter, but Google's
+// photorealistic tiles are streamed meshes with their own textures. Each
+// tile material gets a one-time shader patch whose grayscale branch is
+// driven by this shared uniform, so toggling the button flips every loaded
+// tile instantly — no recompile, no re-download — while the crowd and zone
+// colours stay untouched.
+const googleGrayscaleUniform = { value: state.tileStyle === 'grayscale' ? 1 : 0 }
+
+function patchGoogleTileMaterial(material) {
+  if (!material || material.userData.grayscalePatched) return
+  material.userData.grayscalePatched = true
+  material.onBeforeCompile = (shader) => {
+    shader.uniforms.uTileGrayscale = googleGrayscaleUniform
+    shader.fragmentShader = shader.fragmentShader
+      .replace('void main() {', 'uniform float uTileGrayscale;\nvoid main() {')
+      .replace('#include <dithering_fragment>', `#include <dithering_fragment>
+  if (uTileGrayscale > 0.5) {
+    float tileLuma = dot(gl_FragColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+    gl_FragColor.rgb = vec3(clamp((tileLuma - 0.5) * 1.05 + 0.5, 0.0, 1.0));
+  }`)
+  }
+  material.needsUpdate = true
+}
+
+function patchGoogleTileModel(root) {
+  root.traverse((child) => {
+    if (!child.isMesh) return
+    const mats = Array.isArray(child.material) ? child.material : [child.material]
+    for (const m of mats) patchGoogleTileMaterial(m)
+  })
+}
+
 const buildingsState = ref('idle')   // 'idle' | 'loading' | 'ready' | 'error'
 const buildingsCount = ref(0)
 // Source is driven by the basemap dropdown; no separate settings popover.
@@ -1181,6 +1214,11 @@ async function rebuildGoogleTiles() {
     // wildly wrong ground heights that pull the crowd anchor to +700 m.
     // The "visible" set (what renders by default) is fully transformed.
     tiles.errorTarget = 2
+    // Patch every streamed-in tile model so the Grayscale toggle reaches
+    // the photorealistic textures too.
+    tiles.addEventListener('load-model', ({ scene: tileScene }) => {
+      if (tileScene) patchGoogleTileModel(tileScene)
+    })
     scene.add(tiles.group)
     googleTilesRenderer = tiles
     googleAnchorRefineUntilMs = performance.now() + 14000
@@ -2220,8 +2258,12 @@ watch(() => state.googleHeight.resetNonce, () => {
 })
 
 // Re-fetch tile floor when the basemap (osm/satellite) or tile style
-// (color/grayscale) is toggled.
-watch(() => [state.basemap, state.tileStyle], () => { if (baseModel) rebuildTileFloor() })
+// (color/grayscale) is toggled. The Google 3D tile uniform flips in the
+// same breath so both terrain sources stay in sync.
+watch(() => [state.basemap, state.tileStyle], () => {
+  googleGrayscaleUniform.value = state.tileStyle === 'grayscale' ? 1 : 0
+  if (baseModel) rebuildTileFloor()
+})
 
 // React to source/key changes — switching from OSM to Google (or back, or
 // pasting a new key) re-runs the building load. We also hide the tile-floor
